@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTest } from '@/contexts/TestContext';
 import { testResultApi } from '@/db/api';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield } from 'lucide-react';
+import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -73,6 +73,10 @@ const HomePage: React.FC = () => {
           {isAuthenticated && (
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">{user?.email}</span>
+              <Button variant="outline" onClick={() => navigate('/test/history')}>
+                <History className="mr-2 h-4 w-4" />
+                测试历史
+              </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 退出登录
