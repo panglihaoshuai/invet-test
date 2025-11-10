@@ -11,8 +11,11 @@ import TestHistoryPage from './pages/TestHistoryPage';
 import HistoricalResultPage from './pages/HistoricalResultPage';
 import TestComparisonPage from './pages/TestComparisonPage';
 import GamesHubPage from './pages/GamesHubPage';
-import MarketTimingGamePage from './pages/MarketTimingGamePage';
-import PortfolioAllocationGamePage from './pages/PortfolioAllocationGamePage';
+import HarvestGamePage from './pages/HarvestGamePage';
+import AuctionGamePage from './pages/AuctionGamePage';
+import TwoDoorsGamePage from './pages/TwoDoorsGamePage';
+import HerdGamePage from './pages/HerdGamePage';
+import QuickReactionGamePage from './pages/QuickReactionGamePage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -94,14 +97,29 @@ const routes: RouteConfig[] = [
     element: <BalloonGamePage />
   },
   {
-    name: 'Market Timing Game',
-    path: '/games/market-timing',
-    element: <MarketTimingGamePage />
+    name: 'Harvest Game',
+    path: '/games/harvest',
+    element: <HarvestGamePage />
   },
   {
-    name: 'Portfolio Allocation Game',
-    path: '/games/portfolio',
-    element: <PortfolioAllocationGamePage />
+    name: 'Auction Game',
+    path: '/games/auction',
+    element: <AuctionGamePage />
+  },
+  {
+    name: 'Two Doors Game',
+    path: '/games/two-doors',
+    element: <TwoDoorsGamePage />
+  },
+  {
+    name: 'Herd Game',
+    path: '/games/herd',
+    element: <HerdGamePage />
+  },
+  {
+    name: 'Quick Reaction Game',
+    path: '/games/quick-reaction',
+    element: <QuickReactionGamePage />
   }
 ];
 

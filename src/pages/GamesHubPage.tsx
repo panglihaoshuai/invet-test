@@ -66,44 +66,54 @@ const GamesHubPage = () => {
       path: '/games/balloon'
     },
     {
-      id: 'market-timing',
-      title: '📈 市场时机',
-      description: '在模拟市场中选择买入和卖出时机。测试您的耐心和市场判断能力。',
+      id: 'harvest',
+      title: '🌾 等待收获',
+      description: '模拟长期投资，种子需要时间成长。测试您的耐心与纪律性，决定何时收获。',
       icon: <TrendingUp className="h-8 w-8" />,
       color: 'text-green-500',
-      duration: '5-8 分钟',
-      testAspect: '交易时机把握',
-      path: '/games/market-timing'
+      duration: '5-10 分钟',
+      testAspect: '耐心与纪律性',
+      path: '/games/harvest'
     },
     {
-      id: 'portfolio',
-      title: '📊 资产配置',
-      description: '在不同资产类别间分配投资。测试您的多元化投资策略和风险管理能力。',
+      id: 'auction',
+      title: '🔨 拍卖竞价',
+      description: '参与虚拟拍卖竞拍资产。测试您的贪婪程度与锚定偏差，避免追高陷阱。',
       icon: <PieChart className="h-8 w-8" />,
       color: 'text-purple-500',
       duration: '5-8 分钟',
-      testAspect: '资产配置能力',
-      path: '/games/portfolio'
+      testAspect: '贪婪与锚定偏差',
+      path: '/games/auction'
     },
     {
-      id: 'loss-aversion',
-      title: '⚠️ 止损决策',
-      description: '面对亏损的投资，决定是止损还是继续持有。测试您的损失厌恶程度。',
+      id: 'two-doors',
+      title: '🚪 双门选择',
+      description: '在稳定收益和高风险高回报之间选择。测试您的损失厌恶与决策偏差。',
       icon: <AlertTriangle className="h-8 w-8" />,
       color: 'text-red-500',
-      duration: '5-8 分钟',
-      testAspect: '止损能力',
-      path: '/games/loss-aversion'
+      duration: '3-5 分钟',
+      testAspect: '损失厌恶',
+      path: '/games/two-doors'
     },
     {
-      id: 'volatility',
-      title: '📉 波动承受',
-      description: '在剧烈波动的市场中保持投资。测试您对市场波动的心理承受能力。',
+      id: 'herd',
+      title: '👥 群体羊群',
+      description: '在虚拟市场中决定买卖，观察其他交易者行为。测试您的从众心理与独立思考。',
       icon: <Timer className="h-8 w-8" />,
       color: 'text-orange-500',
       duration: '5-8 分钟',
-      testAspect: '波动容忍度',
-      path: '/games/volatility'
+      testAspect: '从众心理',
+      path: '/games/herd'
+    },
+    {
+      id: 'quick-reaction',
+      title: '⚡ 快速反应',
+      description: '模拟日内交易，限时决策买卖。测试您的决策速度与情绪控制能力。',
+      icon: <Timer className="h-8 w-8" />,
+      color: 'text-yellow-500',
+      duration: '5-8 分钟',
+      testAspect: '决策速度与情绪控制',
+      path: '/games/quick-reaction'
     }
   ];
 
