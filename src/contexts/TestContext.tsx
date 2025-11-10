@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { TestProgress, PersonalityScores, MathFinanceScores, RiskPreferenceScores, TradingCharacteristics } from '@/types/types';
 
 interface TestContextType {
@@ -19,7 +19,7 @@ interface TestContextType {
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
 
-export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TestProvider = ({ children }: { children: React.ReactNode }) => {
   const [testId, setTestId] = useState<string | null>(null);
   const [progress, setProgress] = useState<TestProgress>({
     current_step: 0,
