@@ -3,49 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTest } from '@/contexts/TestContext';
-import { testResultApi } from '@/db/api';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
-  const { setTestId, resetTest } = useTest();
   const { toast } = useToast();
 
-  // 开始新测试
-  const handleStartTest = async () => {
+  // 开始新测试 - 导航到测试模式选择页面
+  const handleStartTest = () => {
     if (!isAuthenticated || !user) {
       navigate('/login');
       return;
     }
 
-    try {
-      // 重置之前的测试状态
-      resetTest();
-
-      // 创建新的测试记录
-      const testResult = await testResultApi.createTestResult(user.id);
-
-      if (testResult) {
-        setTestId(testResult.id);
-        toast({
-          title: '测试已开始',
-          description: '请按顺序完成所有测试',
-        });
-        navigate('/test/personality');
-      } else {
-        throw new Error('创建测试失败');
-      }
-    } catch (error) {
-      console.error('Start test error:', error);
-      toast({
-        title: '启动失败',
-        description: '无法开始测试，请稍后重试',
-        variant: 'destructive'
-      });
-    }
+    navigate('/test/mode-selection');
   };
 
   const handleLogout = () => {

@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const RiskPreferenceTestPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { testId, setRiskPreferenceScores, progress, setProgress } = useTest();
+  const { testId, testMode, setRiskPreferenceScores, progress, setProgress } = useTest();
   const [answers, setAnswers] = useState<Record<string, number>>({});
 
   // 检查是否完成了前两个测试
@@ -110,12 +110,20 @@ const RiskPreferenceTestPage: React.FC = () => {
         completed_tests: [...progress.completed_tests, 'risk_preference']
       });
 
-      toast({
-        title: '所有测试完成',
-        description: '正在生成您的投资策略报告',
-      });
-
-      navigate('/result');
+      // 根据测试模式决定下一步
+      if (testMode === 'comprehensive') {
+        toast({
+          title: '风险偏好测试完成',
+          description: '接下来进行互动游戏测试',
+        });
+        navigate('/test/balloon-game');
+      } else {
+        toast({
+          title: '所有测试完成',
+          description: '正在生成您的投资策略报告',
+        });
+        navigate('/result');
+      }
     } catch (error) {
       console.error('Submit risk preference test error:', error);
       toast({

@@ -1,9 +1,11 @@
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import TestModeSelectionPage from './pages/TestModeSelectionPage';
 import PersonalityTestPage from './pages/PersonalityTestPage';
 import TradingCharacteristicsTestPage from './pages/TradingCharacteristicsTestPage';
 import MathFinanceTestPage from './pages/MathFinanceTestPage';
 import RiskPreferenceTestPage from './pages/RiskPreferenceTestPage';
+import BalloonGamePage from './pages/BalloonGamePage';
 import ResultPage from './pages/ResultPage';
 import TestHistoryPage from './pages/TestHistoryPage';
 import HistoricalResultPage from './pages/HistoricalResultPage';
@@ -29,6 +31,11 @@ const routes: RouteConfig[] = [
     element: <LoginPage />
   },
   {
+    name: 'Test Mode Selection',
+    path: '/test/mode-selection',
+    element: <TestModeSelectionPage />
+  },
+  {
     name: 'Personality Test',
     path: '/test/personality',
     element: <PersonalityTestPage />
@@ -47,6 +54,11 @@ const routes: RouteConfig[] = [
     name: 'Risk Preference Test',
     path: '/test/risk-preference',
     element: <RiskPreferenceTestPage />
+  },
+  {
+    name: 'Balloon Game',
+    path: '/test/balloon-game',
+    element: <BalloonGamePage />
   },
   {
     name: 'Result',

@@ -1,9 +1,21 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { TestProgress, PersonalityScores, MathFinanceScores, RiskPreferenceScores, TradingCharacteristics } from '@/types/types';
 
+interface GameResults {
+  total_rounds: number;
+  explosions: number;
+  cashouts: number;
+  total_coins: number;
+  avg_pops_before_cashout: number;
+  max_pops: number;
+  risk_score: number;
+}
+
 interface TestContextType {
   testId: string | null;
   setTestId: (id: string) => void;
+  testMode: 'quick' | 'comprehensive';
+  setTestMode: (mode: 'quick' | 'comprehensive') => void;
   progress: TestProgress;
   setProgress: (progress: TestProgress) => void;
   personalityScores: PersonalityScores | null;
@@ -14,6 +26,8 @@ interface TestContextType {
   setMathFinanceScores: (scores: MathFinanceScores) => void;
   riskPreferenceScores: RiskPreferenceScores | null;
   setRiskPreferenceScores: (scores: RiskPreferenceScores) => void;
+  gameResults: GameResults | null;
+  setGameResults: (results: GameResults) => void;
   resetTest: () => void;
 }
 
@@ -21,6 +35,7 @@ const TestContext = createContext<TestContextType | undefined>(undefined);
 
 export const TestProvider = ({ children }: { children: React.ReactNode }) => {
   const [testId, setTestId] = useState<string | null>(null);
+  const [testMode, setTestMode] = useState<'quick' | 'comprehensive'>('quick');
   const [progress, setProgress] = useState<TestProgress>({
     current_step: 0,
     total_steps: 4,
@@ -30,17 +45,21 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
   const [tradingCharacteristics, setTradingCharacteristics] = useState<TradingCharacteristics | null>(null);
   const [mathFinanceScores, setMathFinanceScores] = useState<MathFinanceScores | null>(null);
   const [riskPreferenceScores, setRiskPreferenceScores] = useState<RiskPreferenceScores | null>(null);
+  const [gameResults, setGameResults] = useState<GameResults | null>(null);
 
   // 从 localStorage 恢复测试状态
   useEffect(() => {
     const savedTestId = localStorage.getItem('currentTestId');
+    const savedTestMode = localStorage.getItem('testMode');
     const savedProgress = localStorage.getItem('testProgress');
     const savedPersonality = localStorage.getItem('personalityScores');
     const savedTradingCharacteristics = localStorage.getItem('tradingCharacteristics');
     const savedMathFinance = localStorage.getItem('mathFinanceScores');
     const savedRiskPreference = localStorage.getItem('riskPreferenceScores');
+    const savedGameResults = localStorage.getItem('gameResults');
 
     if (savedTestId) setTestId(savedTestId);
+    if (savedTestMode) setTestMode(savedTestMode as 'quick' | 'comprehensive');
     if (savedProgress) {
       try {
         setProgress(JSON.parse(savedProgress));
@@ -76,6 +95,13 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Error parsing saved risk preference scores:', error);
       }
     }
+    if (savedGameResults) {
+      try {
+        setGameResults(JSON.parse(savedGameResults));
+      } catch (error) {
+        console.error('Error parsing saved game results:', error);
+      }
+    }
   }, []);
 
   // 保存测试状态到 localStorage
@@ -84,6 +110,10 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('currentTestId', testId);
     }
   }, [testId]);
+
+  useEffect(() => {
+    localStorage.setItem('testMode', testMode);
+  }, [testMode]);
 
   useEffect(() => {
     localStorage.setItem('testProgress', JSON.stringify(progress));
@@ -113,8 +143,15 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [riskPreferenceScores]);
 
+  useEffect(() => {
+    if (gameResults) {
+      localStorage.setItem('gameResults', JSON.stringify(gameResults));
+    }
+  }, [gameResults]);
+
   const resetTest = () => {
     setTestId(null);
+    setTestMode('quick');
     setProgress({
       current_step: 0,
       total_steps: 4,
@@ -124,12 +161,15 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
     setTradingCharacteristics(null);
     setMathFinanceScores(null);
     setRiskPreferenceScores(null);
+    setGameResults(null);
     localStorage.removeItem('currentTestId');
+    localStorage.removeItem('testMode');
     localStorage.removeItem('testProgress');
     localStorage.removeItem('personalityScores');
     localStorage.removeItem('tradingCharacteristics');
     localStorage.removeItem('mathFinanceScores');
     localStorage.removeItem('riskPreferenceScores');
+    localStorage.removeItem('gameResults');
   };
 
   return (
@@ -137,6 +177,8 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         testId,
         setTestId,
+        testMode,
+        setTestMode,
         progress,
         setProgress,
         personalityScores,
@@ -147,6 +189,8 @@ export const TestProvider = ({ children }: { children: React.ReactNode }) => {
         setMathFinanceScores,
         riskPreferenceScores,
         setRiskPreferenceScores,
+        gameResults,
+        setGameResults,
         resetTest
       }}
     >
