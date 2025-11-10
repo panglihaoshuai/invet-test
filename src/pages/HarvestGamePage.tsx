@@ -169,7 +169,8 @@ const HarvestGamePage = () => {
       stormCount,
       patienceScore,
       riskScore,
-      totalGames
+      totalGames,
+      timestamp: Date.now()
     };
     
     // 保存到 localStorage

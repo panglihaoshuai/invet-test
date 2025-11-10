@@ -11,6 +11,7 @@ import TestHistoryPage from './pages/TestHistoryPage';
 import HistoricalResultPage from './pages/HistoricalResultPage';
 import TestComparisonPage from './pages/TestComparisonPage';
 import GamesHubPage from './pages/GamesHubPage';
+import GameHistoryPage from './pages/GameHistoryPage';
 import HarvestGamePage from './pages/HarvestGamePage';
 import AuctionGamePage from './pages/AuctionGamePage';
 import TwoDoorsGamePage from './pages/TwoDoorsGamePage';
@@ -90,6 +91,11 @@ const routes: RouteConfig[] = [
     name: 'Games Hub',
     path: '/games',
     element: <GamesHubPage />
+  },
+  {
+    name: 'Game History',
+    path: '/games/history',
+    element: <GameHistoryPage />
   },
   {
     name: 'Balloon Game Standalone',

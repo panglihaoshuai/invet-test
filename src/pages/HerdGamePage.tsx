@@ -154,7 +154,8 @@ const HerdGamePage = () => {
       followHerdRate,
       independentWinRate,
       herdScore,
-      roundHistory
+      roundHistory,
+      timestamp: Date.now()
     };
     
     // 保存到 localStorage

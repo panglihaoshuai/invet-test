@@ -111,12 +111,14 @@ const QuickReactionGamePage = () => {
     }]);
     
     // 检查是否触发复仇交易
-    if (consecutiveLosses >= 2) {
+    if (consecutiveLosses >= 2 && !correct) {
       setShowRevengeTrade(true);
       toast({
         title: '⚠️ 情绪波动',
         description: '连续亏损，是否使用高杠杆复仇？',
       });
+      // 不立即进入下一轮，等待用户选择
+      return;
     }
     
     // 下一轮
@@ -203,6 +205,22 @@ const QuickReactionGamePage = () => {
     }
   };
 
+  const skipRevengeTrade = () => {
+    setShowRevengeTrade(false);
+    
+    toast({
+      title: '理性决策',
+      description: '放弃复仇交易，继续正常游戏',
+    });
+    
+    if (currentRound >= totalRounds) {
+      finishGame();
+    } else {
+      setCurrentRound(prev => prev + 1);
+      startNewRound();
+    }
+  };
+
   const finishGame = () => {
     const avgResponseTime = responseTimes.length > 0
       ? responseTimes.reduce((sum, t) => sum + t, 0) / responseTimes.length
@@ -230,7 +248,8 @@ const QuickReactionGamePage = () => {
       speedScore,
       emotionControl,
       impulsiveRate,
-      roundHistory
+      roundHistory,
+      timestamp: Date.now()
     };
     
     // 保存到 localStorage
@@ -494,41 +513,43 @@ const QuickReactionGamePage = () => {
         </Card>
 
         {/* Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>快速决策</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button 
-                onClick={() => handleAction('buy')}
-                size="lg"
-                className="btn-glow h-20 text-lg"
-              >
-                <TrendingUp className="mr-2 h-6 w-6" />
-                买入
-              </Button>
-              <Button 
-                onClick={() => handleAction('sell')}
-                size="lg"
-                variant="outline"
-                className="h-20 text-lg"
-              >
-                <TrendingDown className="mr-2 h-6 w-6" />
-                卖出
-              </Button>
-              <Button 
-                onClick={() => handleAction('hold')}
-                size="lg"
-                variant="secondary"
-                className="h-20 text-lg"
-              >
-                <Pause className="mr-2 h-6 w-6" />
-                持有
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {!showRevengeTrade && (
+          <Card>
+            <CardHeader>
+              <CardTitle>快速决策</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button 
+                  onClick={() => handleAction('buy')}
+                  size="lg"
+                  className="btn-glow h-20 text-lg"
+                >
+                  <TrendingUp className="mr-2 h-6 w-6" />
+                  买入
+                </Button>
+                <Button 
+                  onClick={() => handleAction('sell')}
+                  size="lg"
+                  variant="outline"
+                  className="h-20 text-lg"
+                >
+                  <TrendingDown className="mr-2 h-6 w-6" />
+                  卖出
+                </Button>
+                <Button 
+                  onClick={() => handleAction('hold')}
+                  size="lg"
+                  variant="secondary"
+                  className="h-20 text-lg"
+                >
+                  <Pause className="mr-2 h-6 w-6" />
+                  持有
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Cooldown Option */}
         {consecutiveLosses >= 2 && !cooldownActive && (
@@ -553,21 +574,32 @@ const QuickReactionGamePage = () => {
 
         {/* Revenge Trade */}
         {showRevengeTrade && (
-          <Card className="border-red-500/50 bg-red-500/5">
+          <Card className="border-red-500 border-2 bg-red-500/10">
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-red-500">💥 复仇交易机会</p>
-                  <p className="text-sm text-muted-foreground">使用高杠杆，双倍收益或双倍损失</p>
+                  <AlertTriangle className="h-16 w-16 mx-auto text-red-500 mb-4" />
+                  <p className="text-2xl font-semibold text-red-500 mb-2">💥 复仇交易机会</p>
+                  <p className="text-lg mb-2">连续亏损，情绪波动</p>
+                  <p className="text-sm text-muted-foreground">使用高杠杆：50%概率 +20金币，50%概率 -10金币</p>
                 </div>
-                <Button 
-                  onClick={revengeTradeHighLeverage}
-                  className="w-full"
-                  variant="destructive"
-                  size="lg"
-                >
-                  使用高杠杆复仇
-                </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button 
+                    onClick={skipRevengeTrade}
+                    variant="outline"
+                    size="lg"
+                  >
+                    理性放弃
+                  </Button>
+                  <Button 
+                    onClick={revengeTradeHighLeverage}
+                    variant="destructive"
+                    size="lg"
+                    className="btn-glow"
+                  >
+                    使用高杠杆
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

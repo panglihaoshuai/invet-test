@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2 } from 'lucide-react';
+import TraderProfileCard from '@/components/common/TraderProfileCard';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -81,6 +82,9 @@ const HomePage: React.FC = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Trader Profile */}
+        {isAuthenticated && <TraderProfileCard />}
 
         {/* Features */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">

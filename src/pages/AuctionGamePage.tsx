@@ -230,7 +230,8 @@ const AuctionGamePage = () => {
       lossCount,
       greedScore,
       anchorBiasScore,
-      roundHistory
+      roundHistory,
+      timestamp: Date.now()
     };
     
     // 保存到 localStorage

@@ -12,7 +12,8 @@ import {
   Timer,
   ChevronLeft,
   Play,
-  CheckCircle2
+  CheckCircle2,
+  History
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -130,10 +131,16 @@ const GamesHubPage = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-4">
-          <Button variant="ghost" onClick={() => navigate('/')}>
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            返回首页
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" onClick={() => navigate('/')}>
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              返回首页
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/games/history')}>
+              <History className="mr-2 h-4 w-4" />
+              游戏历史
+            </Button>
+          </div>
           <div className="text-center space-y-2">
             <h1 className="text-3xl xl:text-4xl font-bold gradient-text">
               🎮 投资心理游戏中心

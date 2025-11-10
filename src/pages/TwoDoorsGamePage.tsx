@@ -77,8 +77,13 @@ const TwoDoorsGamePage = () => {
       // 门A：固定+20金币
       result = 20;
     } else {
-      // 门B：50% +50金币，50% -30金币
-      result = Math.random() > 0.5 ? 50 : -30;
+      // 门B：50% +50金币，50% 损失当前总资金的30%
+      if (Math.random() > 0.5) {
+        result = 50;
+      } else {
+        // 损失当前总资金的30%
+        result = -Math.floor(totalCoins * 0.3);
+      }
     }
     
     setTotalCoins(prev => prev + result);
@@ -137,7 +142,8 @@ const TwoDoorsGamePage = () => {
       switchRate,
       riskTolerance,
       statusQuoBias,
-      roundHistory
+      roundHistory,
+      timestamp: Date.now()
     };
     
     // 保存到 localStorage
@@ -173,7 +179,7 @@ const TwoDoorsGamePage = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">3.</span>
-                  <span><strong className="text-red-500">门B</strong>：50% 概率 <strong>+50 金币</strong>，50% 概率 <strong>-30 金币</strong>（风险）</span>
+                  <span><strong className="text-red-500">门B</strong>：50% 概率 <strong>+50 金币</strong>，50% 概率 <strong>损失当前总资金的30%</strong>（风险）</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">4.</span>
@@ -378,7 +384,7 @@ const TwoDoorsGamePage = () => {
               <div className="text-center p-6 bg-red-500/10 rounded-lg">
                 <p className="text-2xl font-bold text-green-500">+50</p>
                 <p className="text-sm text-muted-foreground">或</p>
-                <p className="text-2xl font-bold text-red-500">-30</p>
+                <p className="text-2xl font-bold text-red-500">-30%总资金</p>
                 <p className="text-sm text-muted-foreground mt-2">50% 概率</p>
               </div>
               <p className="text-sm text-center text-muted-foreground">
