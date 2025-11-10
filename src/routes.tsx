@@ -10,6 +10,9 @@ import ResultPage from './pages/ResultPage';
 import TestHistoryPage from './pages/TestHistoryPage';
 import HistoricalResultPage from './pages/HistoricalResultPage';
 import TestComparisonPage from './pages/TestComparisonPage';
+import GamesHubPage from './pages/GamesHubPage';
+import MarketTimingGamePage from './pages/MarketTimingGamePage';
+import PortfolioAllocationGamePage from './pages/PortfolioAllocationGamePage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -79,6 +82,26 @@ const routes: RouteConfig[] = [
     name: 'Test Comparison',
     path: '/test/compare',
     element: <TestComparisonPage />
+  },
+  {
+    name: 'Games Hub',
+    path: '/games',
+    element: <GamesHubPage />
+  },
+  {
+    name: 'Balloon Game Standalone',
+    path: '/games/balloon',
+    element: <BalloonGamePage />
+  },
+  {
+    name: 'Market Timing Game',
+    path: '/games/market-timing',
+    element: <MarketTimingGamePage />
+  },
+  {
+    name: 'Portfolio Allocation Game',
+    path: '/games/portfolio',
+    element: <PortfolioAllocationGamePage />
   }
 ];
 

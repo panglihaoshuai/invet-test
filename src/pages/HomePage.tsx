@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History } from 'lucide-react';
+import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2 } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,6 +46,10 @@ const HomePage: React.FC = () => {
           {isAuthenticated && (
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">{user?.email}</span>
+              <Button variant="outline" onClick={() => navigate('/games')}>
+                <Gamepad2 className="mr-2 h-4 w-4" />
+                游戏中心
+              </Button>
               <Button variant="outline" onClick={() => navigate('/test/history')}>
                 <History className="mr-2 h-4 w-4" />
                 测试历史
