@@ -309,6 +309,6 @@ export function hasEnoughDataForProfile(): boolean {
   const testResults = JSON.parse(localStorage.getItem('testResults') || '[]');
   const completedGames = JSON.parse(localStorage.getItem('completedGames') || '[]');
   
-  // 至少需要完成一次测试或两个游戏
-  return testResults.length > 0 || completedGames.length >= 2;
+  // 至少需要完成一次测试或一个游戏
+  return testResults.length > 0 || completedGames.length >= 1;
 }

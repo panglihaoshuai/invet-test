@@ -155,6 +155,34 @@ export const testResultApi = {
       return null;
     }
     return data;
+  },
+
+  // 删除测试结果
+  async deleteTestResult(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('test_results')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting test result:', error);
+      return false;
+    }
+    return true;
+  },
+
+  // 删除用户所有测试结果
+  async deleteAllUserTestResults(userId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('test_results')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error('Error deleting all test results:', error);
+      return false;
+    }
+    return true;
   }
 };
 

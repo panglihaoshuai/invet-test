@@ -3,11 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { testResultApi } from '@/db/api';
 import type { TestResult } from '@/types/types';
-import { ChevronLeft, Calendar, TrendingUp, Eye, BarChart3 } from 'lucide-react';
+import { ChevronLeft, Calendar, TrendingUp, Eye, BarChart3, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -89,6 +100,35 @@ const TestHistoryPage = () => {
     });
   };
 
+  const handleClearHistory = async () => {
+    if (!user) return;
+
+    try {
+      const success = await testResultApi.deleteAllUserTestResults(user.id);
+      if (success) {
+        setTestHistory([]);
+        setSelectedTests([]);
+        toast({
+          title: '清除成功',
+          description: '所有测试历史已清除'
+        });
+      } else {
+        toast({
+          title: '清除失败',
+          description: '无法清除测试历史，请稍后重试',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Clear history error:', error);
+      toast({
+        title: '清除失败',
+        description: '无法清除测试历史，请稍后重试',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const getInvestmentStyleColor = (style: string | null) => {
     if (!style) return 'secondary';
     if (style.includes('趋势')) return 'default';
@@ -124,12 +164,38 @@ const TestHistoryPage = () => {
                 查看您的历史测试记录，追踪投资风格的变化
               </p>
             </div>
-            {selectedTests.length === 2 && (
-              <Button onClick={handleCompare} className="btn-glow">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                对比选中的测试
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {testHistory.length > 0 && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      清除历史
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>确认清除测试历史？</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        此操作将永久删除所有测试历史记录，无法恢复。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleClearHistory}>
+                        确认清除
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              {selectedTests.length === 2 && (
+                <Button onClick={handleCompare} className="btn-glow">
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  对比选中的测试
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
