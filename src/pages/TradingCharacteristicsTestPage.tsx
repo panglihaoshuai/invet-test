@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +17,7 @@ const TradingCharacteristicsTestPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { testId, setTradingCharacteristics, progress, setProgress } = useTest();
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number | number[]>>({});
 
   // 检查是否完成了人格测试
   React.useEffect(() => {
@@ -34,7 +35,7 @@ const TradingCharacteristicsTestPage: React.FC = () => {
   const answeredCount = Object.keys(answers).length;
   const progressPercentage = (answeredCount / tradingCharacteristicsQuestions.length) * 100;
 
-  // 处理答案选择
+  // 处理单选答案
   const handleAnswerChange = (questionId: string, value: number) => {
     setAnswers((prev) => ({
       ...prev,
@@ -42,17 +43,40 @@ const TradingCharacteristicsTestPage: React.FC = () => {
     }));
   };
 
+  // 处理多选答案
+  const handleMultipleAnswerChange = (questionId: string, optionIndex: number, checked: boolean) => {
+    setAnswers((prev) => {
+      const currentAnswers = (prev[questionId] as number[]) || [];
+      if (checked) {
+        return {
+          ...prev,
+          [questionId]: [...currentAnswers, optionIndex].sort()
+        };
+      } else {
+        return {
+          ...prev,
+          [questionId]: currentAnswers.filter(idx => idx !== optionIndex)
+        };
+      }
+    });
+  };
+
   // 生成交易特征分析
   const generateCharacteristics = (): TradingCharacteristics => {
+    const t7Answer = answers['t7'] as number[];
+    const learningStyle = t7Answer && t7Answer.length > 0
+      ? t7Answer.map(idx => tradingCharacteristicsQuestions[6].options?.[idx] || '').join('、')
+      : '';
+
     const characteristics: TradingCharacteristics = {
-      trading_frequency: tradingCharacteristicsQuestions[0].options?.[answers['t1'] || 0] || '',
-      preferred_instruments: tradingCharacteristicsQuestions[1].options?.[answers['t2'] || 0] || '',
-      analysis_method: tradingCharacteristicsQuestions[2].options?.[answers['t3'] || 0] || '',
-      technical_preference: tradingCharacteristicsQuestions[3].options?.[answers['t4'] || 0] || '',
-      decision_basis: tradingCharacteristicsQuestions[4].options?.[answers['t5'] || 0] || '',
-      investment_philosophy: tradingCharacteristicsQuestions[5].options?.[answers['t6'] || 0] || '',
-      learning_style: tradingCharacteristicsQuestions[6].options?.[answers['t7'] || 0] || '',
-      portfolio_approach: tradingCharacteristicsQuestions[7].options?.[answers['t8'] || 0] || ''
+      trading_frequency: tradingCharacteristicsQuestions[0].options?.[answers['t1'] as number || 0] || '',
+      preferred_instruments: tradingCharacteristicsQuestions[1].options?.[answers['t2'] as number || 0] || '',
+      analysis_method: tradingCharacteristicsQuestions[2].options?.[answers['t3'] as number || 0] || '',
+      technical_preference: tradingCharacteristicsQuestions[3].options?.[answers['t4'] as number || 0] || '',
+      decision_basis: tradingCharacteristicsQuestions[4].options?.[answers['t5'] as number || 0] || '',
+      investment_philosophy: tradingCharacteristicsQuestions[5].options?.[answers['t6'] as number || 0] || '',
+      learning_style: learningStyle,
+      portfolio_approach: tradingCharacteristicsQuestions[7].options?.[answers['t8'] as number || 0] || ''
     };
 
     return characteristics;
@@ -64,6 +88,17 @@ const TradingCharacteristicsTestPage: React.FC = () => {
       toast({
         title: '请完成所有题目',
         description: `还有 ${tradingCharacteristicsQuestions.length - answeredCount} 道题未完成`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // 检查多选题是否至少选择了一项
+    const t7Answer = answers['t7'] as number[];
+    if (!t7Answer || t7Answer.length === 0) {
+      toast({
+        title: '请完成所有题目',
+        description: '第7题至少需要选择一项',
         variant: 'destructive'
       });
       return;
@@ -150,27 +185,54 @@ const TradingCharacteristicsTestPage: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <RadioGroup
-                  value={answers[question.id]?.toString()}
-                  onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
-                >
+                {question.type === 'multiple_select' ? (
+                  // 多选题
                   <div className="space-y-3">
-                    {question.options?.map((option, optionIndex) => (
-                      <div key={optionIndex} className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value={optionIndex.toString()}
-                          id={`${question.id}-${optionIndex}`}
-                        />
-                        <Label
-                          htmlFor={`${question.id}-${optionIndex}`}
-                          className="cursor-pointer flex-1"
-                        >
-                          {option}
-                        </Label>
-                      </div>
-                    ))}
+                    {question.options?.map((option, optionIndex) => {
+                      const isChecked = ((answers[question.id] as number[]) || []).includes(optionIndex);
+                      return (
+                        <div key={optionIndex} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${question.id}-${optionIndex}`}
+                            checked={isChecked}
+                            onCheckedChange={(checked) =>
+                              handleMultipleAnswerChange(question.id, optionIndex, checked as boolean)
+                            }
+                          />
+                          <Label
+                            htmlFor={`${question.id}-${optionIndex}`}
+                            className="cursor-pointer flex-1"
+                          >
+                            {option}
+                          </Label>
+                        </div>
+                      );
+                    })}
                   </div>
-                </RadioGroup>
+                ) : (
+                  // 单选题
+                  <RadioGroup
+                    value={(answers[question.id] as number)?.toString()}
+                    onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
+                  >
+                    <div className="space-y-3">
+                      {question.options?.map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex items-center space-x-2">
+                          <RadioGroupItem
+                            value={optionIndex.toString()}
+                            id={`${question.id}-${optionIndex}`}
+                          />
+                          <Label
+                            htmlFor={`${question.id}-${optionIndex}`}
+                            className="cursor-pointer flex-1"
+                          >
+                            {option}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                )}
               </CardContent>
             </Card>
           ))}

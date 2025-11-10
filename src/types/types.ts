@@ -97,7 +97,7 @@ export interface InvestmentStyleVector {
 export interface Question {
   id: string;
   text: string;
-  type: 'likert' | 'multiple_choice' | 'scenario';
+  type: 'likert' | 'multiple_choice' | 'scenario' | 'multiple_select';
   options?: string[];
   trait?: keyof PersonalityScores;
 }

@@ -103,7 +103,7 @@ export const tradingCharacteristicsQuestions: Question[] = [
   },
   {
     id: 't2',
-    text: '您最感兴趣的投资标的是：（可多选，但请选择最主要的）',
+    text: '您最感兴趣的投资标的是：',
     type: 'multiple_choice',
     options: [
       'A股/港股',
@@ -122,7 +122,7 @@ export const tradingCharacteristicsQuestions: Question[] = [
       '技术分析为主（K线、指标、形态）',
       '基本面分析为主（财报、行业、宏观）',
       '量化分析为主（数据模型、统计套利）',
-      '两者结合使用'
+      '技术分析与基本面分析结合'
     ]
   },
   {
@@ -160,8 +160,8 @@ export const tradingCharacteristicsQuestions: Question[] = [
   },
   {
     id: 't7',
-    text: '您通常如何学习和提升投资能力？',
-    type: 'multiple_choice',
+    text: '您通常如何学习和提升投资能力？（可多选）',
+    type: 'multiple_select',
     options: [
       '阅读投资大师的书籍和理论',
       '研究历史数据和回测策略',
@@ -188,7 +188,7 @@ export const mathFinanceQuestions: Question[] = [
     id: 'm1',
     text: '如果一项投资的年化收益率为8%，采用复利计算，10年后10万元会变成多少？',
     type: 'multiple_choice',
-    options: ['18万元', '21.6万元', '21.59万元', '20万元']
+    options: ['18万元', '20万元', '21.59万元', '25万元']
   },
   {
     id: 'm2',
