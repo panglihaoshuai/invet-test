@@ -1,4 +1,4 @@
-import type { PersonalityScores, InvestmentStyleVector } from '@/types/types';
+import type { PersonalityScores, InvestmentStyleVector, TradingCharacteristics } from '@/types/types';
 
 // 投资风格向量定义
 export const investmentStyles: InvestmentStyleVector[] = [
@@ -271,4 +271,49 @@ export function generateDetailedRecommendations(
   }
 
   return recommendations;
+}
+
+// 生成交易特征分析
+export function generateTradingCharacteristicsAnalysis(characteristics: TradingCharacteristics): string {
+  const analysis: string[] = [];
+
+  // 交易频率分析
+  if (characteristics.trading_frequency.includes('日内')) {
+    analysis.push('您偏好日内交易，需要较强的盘感和快速决策能力');
+  } else if (characteristics.trading_frequency.includes('短线')) {
+    analysis.push('您适合短线交易，需要关注技术面和市场情绪');
+  } else if (characteristics.trading_frequency.includes('中线')) {
+    analysis.push('您倾向中线交易，适合结合技术面和基本面分析');
+  } else {
+    analysis.push('您是长线投资者，更注重基本面和长期价值');
+  }
+
+  // 分析方法
+  if (characteristics.analysis_method.includes('技术分析')) {
+    analysis.push('您主要使用技术分析，建议系统学习各类技术指标和形态');
+  } else if (characteristics.analysis_method.includes('基本面')) {
+    analysis.push('您注重基本面分析，建议深入研究财务报表和行业动态');
+  } else if (characteristics.analysis_method.includes('量化')) {
+    analysis.push('您偏好量化分析，建议加强编程和数据分析能力');
+  }
+
+  // 技术偏好
+  if (characteristics.technical_preference.includes('主观性')) {
+    analysis.push('您倾向使用波浪理论、缠论等主观性工具，需要大量实践积累经验');
+  } else if (characteristics.technical_preference.includes('客观性')) {
+    analysis.push('您使用客观性指标，建议结合多个指标综合判断');
+  } else if (characteristics.technical_preference.includes('数据驱动')) {
+    analysis.push('您是数据驱动型交易者，适合开发量化策略');
+  }
+
+  // 投资理念
+  if (characteristics.investment_philosophy.includes('趋势')) {
+    analysis.push('您认同趋势交易理念，建议学习趋势识别和跟踪技巧');
+  } else if (characteristics.investment_philosophy.includes('价值')) {
+    analysis.push('您是价值投资者，建议深入学习价值评估方法');
+  } else if (characteristics.investment_philosophy.includes('波段')) {
+    analysis.push('您擅长波段操作，需要精准把握买卖时机');
+  }
+
+  return analysis.join('；') + '。';
 }

@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTest } from '@/contexts/TestContext';
 import { testResultApi } from '@/db/api';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Calculator, TrendingUp, FileText, LogOut, Play } from 'lucide-react';
+import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ const HomePage: React.FC = () => {
           <CardHeader>
             <CardTitle className="text-2xl">开始您的投资性格评估</CardTitle>
             <CardDescription>
-              通过三个维度的专业测评，我们将为您匹配最适合的投资策略
+              通过四个维度的专业测评，我们将为您匹配最适合的投资策略
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,7 +102,7 @@ const HomePage: React.FC = () => {
         </Card>
 
         {/* Features */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -114,7 +114,23 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                基于Big Five人格模型，评估您的开放性、尽责性、外向性、宜人性和神经质五个维度，了解您的投资性格特征。
+                基于Big Five和16Personalities模型，50道题目深度评估您的投资性格特征和行为倾向。
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <TrendingUp className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>交易特征评估</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                了解您的交易频率、偏好标的、分析方法和投资理念，精准匹配适合的交易风格。
               </p>
             </CardContent>
           </Card>
@@ -139,7 +155,7 @@ const HomePage: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">
-                  <TrendingUp className="h-6 w-6 text-primary" />
+                  <Shield className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>风险偏好评估</CardTitle>
               </div>

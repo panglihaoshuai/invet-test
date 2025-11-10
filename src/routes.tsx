@@ -1,6 +1,7 @@
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import PersonalityTestPage from './pages/PersonalityTestPage';
+import TradingCharacteristicsTestPage from './pages/TradingCharacteristicsTestPage';
 import MathFinanceTestPage from './pages/MathFinanceTestPage';
 import RiskPreferenceTestPage from './pages/RiskPreferenceTestPage';
 import ResultPage from './pages/ResultPage';
@@ -28,6 +29,11 @@ const routes: RouteConfig[] = [
     name: 'Personality Test',
     path: '/test/personality',
     element: <PersonalityTestPage />
+  },
+  {
+    name: 'Trading Characteristics Test',
+    path: '/test/trading-characteristics',
+    element: <TradingCharacteristicsTestPage />
   },
   {
     name: 'Math Finance Test',

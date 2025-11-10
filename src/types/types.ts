@@ -22,6 +22,7 @@ export interface TestResult {
   personality_scores: PersonalityScores | null;
   math_finance_scores: MathFinanceScores | null;
   risk_preference_scores: RiskPreferenceScores | null;
+  trading_characteristics: TradingCharacteristics | null;
   investment_style: string | null;
   euclidean_distance: number | null;
   completed_at: string;
@@ -60,12 +61,24 @@ export interface RiskPreferenceScores {
   loss_aversion: number; // 损失厌恶程度
 }
 
+export interface TradingCharacteristics {
+  trading_frequency: string; // 交易频率
+  preferred_instruments: string; // 偏好的投资标的
+  analysis_method: string; // 分析方法
+  technical_preference: string; // 技术分析偏好
+  decision_basis: string; // 决策依据
+  investment_philosophy: string; // 投资理念
+  learning_style: string; // 学习方式
+  portfolio_approach: string; // 组合管理方式
+}
+
 export interface ReportData {
   user_email: string;
   test_date: string;
   personality_analysis: string;
   math_finance_analysis: string;
   risk_analysis: string;
+  trading_characteristics_analysis: string;
   recommended_strategy: string;
   investment_style: string;
   detailed_recommendations: string[];

@@ -11,6 +11,7 @@ import {
   generatePersonalityAnalysis,
   generateMathFinanceAnalysis,
   generateRiskAnalysis,
+  generateTradingCharacteristicsAnalysis,
   generateDetailedRecommendations
 } from '@/utils/calculations';
 import type { ReportData } from '@/types/types';
@@ -20,12 +21,12 @@ const ResultPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { testId, personalityScores, mathFinanceScores, riskPreferenceScores, resetTest } = useTest();
+  const { testId, personalityScores, tradingCharacteristics, mathFinanceScores, riskPreferenceScores, resetTest } = useTest();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
 
   useEffect(() => {
-    if (!testId || !personalityScores || !mathFinanceScores || !riskPreferenceScores) {
+    if (!testId || !personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores) {
       toast({
         title: '数据不完整',
         description: '请完成所有测试',
@@ -39,7 +40,7 @@ const ResultPage: React.FC = () => {
   }, []);
 
   const generateReport = async () => {
-    if (!personalityScores || !mathFinanceScores || !riskPreferenceScores || !user) {
+    if (!personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores || !user) {
       return;
     }
 
@@ -55,6 +56,7 @@ const ResultPage: React.FC = () => {
 
       // 生成分析文本
       const personalityAnalysis = generatePersonalityAnalysis(personalityScores);
+      const tradingCharacteristicsAnalysis = generateTradingCharacteristicsAnalysis(tradingCharacteristics);
       const mathFinanceAnalysis = generateMathFinanceAnalysis(mathFinanceScores.percentage);
       const riskAnalysis = generateRiskAnalysis(
         riskPreferenceScores.risk_tolerance,
@@ -71,6 +73,7 @@ const ResultPage: React.FC = () => {
         user_email: user.email,
         test_date: new Date().toLocaleDateString('zh-CN'),
         personality_analysis: personalityAnalysis,
+        trading_characteristics_analysis: tradingCharacteristicsAnalysis,
         math_finance_analysis: mathFinanceAnalysis,
         risk_analysis: riskAnalysis,
         recommended_strategy: style.description,
@@ -220,6 +223,41 @@ const ResultPage: React.FC = () => {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">{personalityScores.neuroticism}</div>
                     <div className="text-xs text-muted-foreground">神经质</div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Trading Characteristics Analysis */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle>交易特征分析</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm leading-relaxed">{reportData.trading_characteristics_analysis}</p>
+              {tradingCharacteristics && (
+                <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">交易频率：</span>
+                    <span className="text-primary font-medium">{tradingCharacteristics.trading_frequency}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">偏好标的：</span>
+                    <span className="text-primary font-medium">{tradingCharacteristics.preferred_instruments}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">分析方法：</span>
+                    <span className="text-primary font-medium">{tradingCharacteristics.analysis_method}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">投资理念：</span>
+                    <span className="text-primary font-medium">{tradingCharacteristics.investment_philosophy}</span>
                   </div>
                 </div>
               )}

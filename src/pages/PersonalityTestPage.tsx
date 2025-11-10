@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -12,32 +12,34 @@ import { personalityQuestions, likertOptions, reverseScoreQuestions } from '@/da
 import type { PersonalityScores } from '@/types/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+const QUESTIONS_PER_PAGE = 10;
+
 const PersonalityTestPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { testId, setPersonalityScores, progress, setProgress } = useTest();
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [currentPage, setCurrentPage] = useState(0);
-  const questionsPerPage = 5;
-  const totalPages = Math.ceil(personalityQuestions.length / questionsPerPage);
 
-  // 检查是否有测试ID
+  // 检查是否已登录
   React.useEffect(() => {
     if (!testId) {
       toast({
-        title: '请先开始测试',
-        description: '请从首页开始新的测试',
+        title: '请先登录',
+        description: '请返回首页登录后开始测试',
         variant: 'destructive'
       });
       navigate('/');
     }
   }, [testId, navigate, toast]);
 
-  // 获取当前页的问题
-  const currentQuestions = personalityQuestions.slice(
-    currentPage * questionsPerPage,
-    (currentPage + 1) * questionsPerPage
-  );
+  // 计算总页数
+  const totalPages = Math.ceil(personalityQuestions.length / QUESTIONS_PER_PAGE);
+  
+  // 获取当前页的题目
+  const startIndex = currentPage * QUESTIONS_PER_PAGE;
+  const endIndex = startIndex + QUESTIONS_PER_PAGE;
+  const currentQuestions = personalityQuestions.slice(startIndex, endIndex);
 
   // 计算进度
   const answeredCount = Object.keys(answers).length;
@@ -61,7 +63,7 @@ const PersonalityTestPage: React.FC = () => {
       neuroticism: 0
     };
 
-    const counts: Record<keyof PersonalityScores, number> = {
+    const counts = {
       openness: 0,
       conscientiousness: 0,
       extraversion: 0,
@@ -72,14 +74,14 @@ const PersonalityTestPage: React.FC = () => {
     personalityQuestions.forEach((question) => {
       const answer = answers[question.id];
       if (answer && question.trait) {
-        // 反向计分
+        // 反向计分处理
         const score = reverseScoreQuestions.includes(question.id) ? 6 - answer : answer;
         scores[question.trait] += score;
         counts[question.trait]++;
       }
     });
 
-    // 计算平均分并转换为1-10的量表
+    // 计算平均分并转换为10分制
     Object.keys(scores).forEach((trait) => {
       const key = trait as keyof PersonalityScores;
       if (counts[key] > 0) {
@@ -116,15 +118,15 @@ const PersonalityTestPage: React.FC = () => {
       setProgress({
         ...progress,
         current_step: 1,
-        completed_tests: [...progress.completed_tests, 'personality']
+        completed_tests: ['personality']
       });
 
       toast({
         title: '人格测试完成',
-        description: '正在进入数学金融能力测试',
+        description: '正在进入交易特征评估',
       });
 
-      navigate('/test/math-finance');
+      navigate('/test/trading-characteristics');
     } catch (error) {
       console.error('Submit personality test error:', error);
       toast({
@@ -137,6 +139,19 @@ const PersonalityTestPage: React.FC = () => {
 
   // 下一页
   const handleNextPage = () => {
+    // 检查当前页是否全部完成
+    const currentPageQuestions = currentQuestions.map(q => q.id);
+    const unansweredInCurrentPage = currentPageQuestions.filter(id => !answers[id]);
+    
+    if (unansweredInCurrentPage.length > 0) {
+      toast({
+        title: '请完成当前页所有题目',
+        description: `还有 ${unansweredInCurrentPage.length} 道题未完成`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
     if (currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -161,9 +176,9 @@ const PersonalityTestPage: React.FC = () => {
             返回首页
           </Button>
           <div>
-            <h1 className="text-3xl font-bold gradient-text mb-2">人格特质测试</h1>
+            <h1 className="text-3xl font-bold gradient-text mb-2">人格特质评估</h1>
             <p className="text-muted-foreground">
-              基于Big Five人格模型，请根据您的真实感受选择最符合的选项
+              基于Big Five模型和16Personalities，结合投资行为特征的综合评估
             </p>
           </div>
         </div>
@@ -179,41 +194,51 @@ const PersonalityTestPage: React.FC = () => {
                 </span>
               </div>
               <Progress value={progressPercentage} className="h-2" />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>第 {currentPage + 1} 页，共 {totalPages} 页</span>
+                <span>{Math.round(progressPercentage)}% 完成</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Questions */}
         <div className="space-y-4">
-          {currentQuestions.map((question, index) => (
-            <Card key={question.id}>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {currentPage * questionsPerPage + index + 1}. {question.text}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RadioGroup
-                  value={answers[question.id]?.toString()}
-                  onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
-                >
-                  <div className="grid grid-cols-1 xl:grid-cols-5 gap-3">
-                    {likertOptions.map((option) => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={option.value.toString()} id={`${question.id}-${option.value}`} />
-                        <Label
-                          htmlFor={`${question.id}-${option.value}`}
-                          className="cursor-pointer flex-1"
-                        >
-                          {option.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </RadioGroup>
-              </CardContent>
-            </Card>
-          ))}
+          {currentQuestions.map((question, index) => {
+            const globalIndex = startIndex + index;
+            return (
+              <Card key={question.id}>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {globalIndex + 1}. {question.text}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <RadioGroup
+                    value={answers[question.id]?.toString()}
+                    onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
+                  >
+                    <div className="flex flex-col xl:flex-row xl:justify-between gap-3">
+                      {likertOptions.map((option) => (
+                        <div key={option.value} className="flex items-center space-x-2">
+                          <RadioGroupItem
+                            value={option.value.toString()}
+                            id={`${question.id}-${option.value}`}
+                          />
+                          <Label
+                            htmlFor={`${question.id}-${option.value}`}
+                            className="cursor-pointer"
+                          >
+                            {option.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Navigation */}
@@ -227,22 +252,18 @@ const PersonalityTestPage: React.FC = () => {
             上一页
           </Button>
 
-          <span className="text-sm text-muted-foreground">
-            第 {currentPage + 1} / {totalPages} 页
-          </span>
-
-          {currentPage < totalPages - 1 ? (
-            <Button onClick={handleNextPage}>
-              下一页
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : (
+          {currentPage === totalPages - 1 ? (
             <Button
               onClick={handleSubmit}
               disabled={answeredCount < personalityQuestions.length}
               className="btn-glow"
             >
               完成并继续
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button onClick={handleNextPage} className="btn-glow">
+              下一页
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           )}

@@ -1,36 +1,185 @@
 import type { Question } from '@/types/types';
 
-// Big Five 人格测试问题
+// 增强版人格测试问题 - 结合BFI、16Personalities和交易特征
 export const personalityQuestions: Question[] = [
-  // 开放性 (Openness)
-  { id: 'p1', text: '我喜欢尝试新的投资产品和策略', type: 'likert', trait: 'openness' },
-  { id: 'p2', text: '我对复杂的金融衍生品感兴趣', type: 'likert', trait: 'openness' },
-  { id: 'p3', text: '我更喜欢传统的投资方式', type: 'likert', trait: 'openness' }, // 反向计分
-  { id: 'p4', text: '我愿意学习新的投资理念和方法', type: 'likert', trait: 'openness' },
+  // ========== 开放性 (Openness) - 10题 ==========
+  // 创新与探索
+  { id: 'p1', text: '我经常主动寻找和尝试新的投资策略或产品', type: 'likert', trait: 'openness' },
+  { id: 'p2', text: '我对加密货币、NFT等新兴投资领域充满好奇', type: 'likert', trait: 'openness' },
+  { id: 'p3', text: '我更倾向于投资我熟悉和了解的传统资产', type: 'likert', trait: 'openness' }, // 反向
+  { id: 'p4', text: '我喜欢研究不同国家和地区的投资机会', type: 'likert', trait: 'openness' },
   
-  // 尽责性 (Conscientiousness)
-  { id: 'p5', text: '我会制定详细的投资计划并严格执行', type: 'likert', trait: 'conscientiousness' },
-  { id: 'p6', text: '我经常记录和分析自己的投资决策', type: 'likert', trait: 'conscientiousness' },
-  { id: 'p7', text: '我有时会冲动地做出投资决定', type: 'likert', trait: 'conscientiousness' }, // 反向计分
-  { id: 'p8', text: '我会定期检查和调整投资组合', type: 'likert', trait: 'conscientiousness' },
+  // 创意思维
+  { id: 'p5', text: '我经常能想到独特的投资角度和机会', type: 'likert', trait: 'openness' },
+  { id: 'p6', text: '我喜欢将不同领域的知识应用到投资分析中', type: 'likert', trait: 'openness' },
+  { id: 'p7', text: '我更喜欢遵循经典的投资理论和方法', type: 'likert', trait: 'openness' }, // 反向
   
-  // 外向性 (Extraversion)
-  { id: 'p9', text: '我喜欢与他人讨论投资想法', type: 'likert', trait: 'extraversion' },
-  { id: 'p10', text: '我倾向于独自研究和做决策', type: 'likert', trait: 'extraversion' }, // 反向计分
-  { id: 'p11', text: '我喜欢参加投资相关的社交活动', type: 'likert', trait: 'extraversion' },
-  { id: 'p12', text: '我在投资时更依赖自己的判断而非他人意见', type: 'likert', trait: 'extraversion' }, // 反向计分
+  // 学习意愿
+  { id: 'p8', text: '我愿意花时间学习复杂的金融衍生品', type: 'likert', trait: 'openness' },
+  { id: 'p9', text: '我对量化交易、算法交易等技术感兴趣', type: 'likert', trait: 'openness' },
+  { id: 'p10', text: '我认为投资不需要太多创新，稳健就好', type: 'likert', trait: 'openness' }, // 反向
   
-  // 宜人性 (Agreeableness)
-  { id: 'p13', text: '我愿意听取专业理财顾问的建议', type: 'likert', trait: 'agreeableness' },
-  { id: 'p14', text: '我倾向于跟随市场主流观点', type: 'likert', trait: 'agreeableness' },
-  { id: 'p15', text: '我更相信自己的分析而非专家意见', type: 'likert', trait: 'agreeableness' }, // 反向计分
-  { id: 'p16', text: '我喜欢参与集体投资决策', type: 'likert', trait: 'agreeableness' },
+  // ========== 尽责性 (Conscientiousness) - 10题 ==========
+  // 计划性
+  { id: 'p11', text: '我会制定详细的投资计划，包括目标、策略和时间表', type: 'likert', trait: 'conscientiousness' },
+  { id: 'p12', text: '我严格遵守自己设定的止损和止盈规则', type: 'likert', trait: 'conscientiousness' },
+  { id: 'p13', text: '我经常因为市场变化而临时改变投资计划', type: 'likert', trait: 'conscientiousness' }, // 反向
+  { id: 'p14', text: '我会定期（如每周/每月）检查和调整投资组合', type: 'likert', trait: 'conscientiousness' },
   
-  // 神经质 (Neuroticism)
-  { id: 'p17', text: '市场波动会让我感到焦虑', type: 'likert', trait: 'neuroticism' },
-  { id: 'p18', text: '我经常担心投资会亏损', type: 'likert', trait: 'neuroticism' },
-  { id: 'p19', text: '即使市场下跌，我也能保持冷静', type: 'likert', trait: 'neuroticism' }, // 反向计分
-  { id: 'p20', text: '投资亏损会严重影响我的情绪', type: 'likert', trait: 'neuroticism' }
+  // 自律性
+  { id: 'p15', text: '我能够严格控制自己的交易频率，避免过度交易', type: 'likert', trait: 'conscientiousness' },
+  { id: 'p16', text: '我会详细记录每一笔交易及其原因', type: 'likert', trait: 'conscientiousness' },
+  { id: 'p17', text: '我有时会冲动地追涨杀跌', type: 'likert', trait: 'conscientiousness' }, // 反向
+  
+  // 风险管理
+  { id: 'p18', text: '我在投资前会仔细评估和控制风险', type: 'likert', trait: 'conscientiousness' },
+  { id: 'p19', text: '我倾向于避免高风险的投资机会', type: 'likert', trait: 'conscientiousness' },
+  { id: 'p20', text: '我经常事后才意识到自己承担了过高的风险', type: 'likert', trait: 'conscientiousness' }, // 反向
+  
+  // ========== 外向性 (Extraversion) - 10题 ==========
+  // 社交倾向
+  { id: 'p21', text: '我喜欢在投资社群或论坛中分享观点', type: 'likert', trait: 'extraversion' },
+  { id: 'p22', text: '我更喜欢独自研究，不太愿意与他人讨论', type: 'likert', trait: 'extraversion' }, // 反向
+  { id: 'p23', text: '我经常参加投资讲座、沙龙等线下活动', type: 'likert', trait: 'extraversion' },
+  { id: 'p24', text: '我在投资群体中通常比较活跃和健谈', type: 'likert', trait: 'extraversion' },
+  
+  // 决策风格
+  { id: 'p25', text: '我喜欢快速做出投资决策并立即执行', type: 'likert', trait: 'extraversion' },
+  { id: 'p26', text: '我需要长时间独自思考才能做出决策', type: 'likert', trait: 'extraversion' }, // 反向
+  { id: 'p27', text: '我在做重要投资决策时会寻求他人的反馈', type: 'likert', trait: 'extraversion' },
+  
+  // 自信表达
+  { id: 'p28', text: '我对自己的投资判断充满信心', type: 'likert', trait: 'extraversion' },
+  { id: 'p29', text: '我愿意公开分享自己的投资业绩', type: 'likert', trait: 'extraversion' },
+  { id: 'p30', text: '我不太愿意在公开场合表达投资观点', type: 'likert', trait: 'extraversion' }, // 反向
+  
+  // ========== 宜人性 (Agreeableness) - 10题 ==========
+  // 信任与合作
+  { id: 'p31', text: '我愿意相信并采纳专业理财顾问的建议', type: 'likert', trait: 'agreeableness' },
+  { id: 'p32', text: '我对市场上的"专家"观点持怀疑态度', type: 'likert', trait: 'agreeableness' }, // 反向
+  { id: 'p33', text: '我倾向于跟随市场主流共识', type: 'likert', trait: 'agreeableness' },
+  { id: 'p34', text: '我喜欢与他人合作进行投资决策', type: 'likert', trait: 'agreeableness' },
+  
+  // 竞争vs合作
+  { id: 'p35', text: '我认为投资是零和游戏，必须战胜他人', type: 'likert', trait: 'agreeableness' }, // 反向
+  { id: 'p36', text: '我愿意分享有价值的投资信息给朋友', type: 'likert', trait: 'agreeableness' },
+  { id: 'p37', text: '我更关注自己的收益，而非与他人比较', type: 'likert', trait: 'agreeableness' },
+  
+  // 决策独立性
+  { id: 'p38', text: '我更相信自己的分析而非权威意见', type: 'likert', trait: 'agreeableness' }, // 反向
+  { id: 'p39', text: '我容易被他人的投资成功故事影响', type: 'likert', trait: 'agreeableness' },
+  { id: 'p40', text: '我倾向于逆向思考，不随大流', type: 'likert', trait: 'agreeableness' }, // 反向
+  
+  // ========== 神经质 (Neuroticism) - 10题 ==========
+  // 情绪稳定性
+  { id: 'p41', text: '市场的剧烈波动会让我感到焦虑不安', type: 'likert', trait: 'neuroticism' },
+  { id: 'p42', text: '即使账面亏损，我也能保持冷静和理性', type: 'likert', trait: 'neuroticism' }, // 反向
+  { id: 'p43', text: '我经常担心投资会失败或亏损', type: 'likert', trait: 'neuroticism' },
+  { id: 'p44', text: '投资的盈亏会显著影响我的日常情绪', type: 'likert', trait: 'neuroticism' },
+  
+  // 压力应对
+  { id: 'p45', text: '在市场下跌时，我很难集中精力做其他事情', type: 'likert', trait: 'neuroticism' },
+  { id: 'p46', text: '我能够承受较大的投资压力而不影响生活', type: 'likert', trait: 'neuroticism' }, // 反向
+  { id: 'p47', text: '我经常因为市场走势而失眠', type: 'likert', trait: 'neuroticism' },
+  
+  // 决策焦虑
+  { id: 'p48', text: '做出投资决策后，我经常会反复怀疑自己', type: 'likert', trait: 'neuroticism' },
+  { id: 'p49', text: '我对投资决策充满信心，很少事后后悔', type: 'likert', trait: 'neuroticism' }, // 反向
+  { id: 'p50', text: '我害怕错过投资机会（FOMO心理）', type: 'likert', trait: 'neuroticism' }
+];
+
+// ========== 交易特征问题 ==========
+export const tradingCharacteristicsQuestions: Question[] = [
+  {
+    id: 't1',
+    text: '您的交易频率通常是：',
+    type: 'multiple_choice',
+    options: [
+      '日内交易（每天多次）',
+      '短线交易（持仓几天到几周）',
+      '中线交易（持仓几个月）',
+      '长线投资（持仓一年以上）'
+    ]
+  },
+  {
+    id: 't2',
+    text: '您最感兴趣的投资标的是：（可多选，但请选择最主要的）',
+    type: 'multiple_choice',
+    options: [
+      'A股/港股',
+      '美股/国际股市',
+      '加密货币',
+      '期货/期权等衍生品',
+      '基金（指数基金、主动基金）',
+      '债券/固定收益产品'
+    ]
+  },
+  {
+    id: 't3',
+    text: '您更倾向于哪种交易分析方法？',
+    type: 'multiple_choice',
+    options: [
+      '技术分析为主（K线、指标、形态）',
+      '基本面分析为主（财报、行业、宏观）',
+      '量化分析为主（数据模型、统计套利）',
+      '两者结合使用'
+    ]
+  },
+  {
+    id: 't4',
+    text: '在技术分析工具中，您更偏好：',
+    type: 'multiple_choice',
+    options: [
+      '主观性工具（波浪理论、缠论、江恩理论等）',
+      '客观性指标（MACD、RSI、布林带等）',
+      '数据驱动（量价关系、统计模型）',
+      '不使用技术分析'
+    ]
+  },
+  {
+    id: 't5',
+    text: '您的交易决策主要基于：',
+    type: 'multiple_choice',
+    options: [
+      '直觉和经验',
+      '系统化的交易规则',
+      '量化模型和回测数据',
+      '跟随市场热点和消息'
+    ]
+  },
+  {
+    id: 't6',
+    text: '您对以下哪种投资理念最认同？',
+    type: 'multiple_choice',
+    options: [
+      '趋势为王，顺势而为',
+      '价值投资，长期持有',
+      '波段操作，高抛低吸',
+      '套利交易，稳定收益'
+    ]
+  },
+  {
+    id: 't7',
+    text: '您通常如何学习和提升投资能力？',
+    type: 'multiple_choice',
+    options: [
+      '阅读投资大师的书籍和理论',
+      '研究历史数据和回测策略',
+      '参加培训课程和投资社群',
+      '通过实战总结经验教训'
+    ]
+  },
+  {
+    id: 't8',
+    text: '您对投资组合的态度是：',
+    type: 'multiple_choice',
+    options: [
+      '集中投资，重仓少数标的',
+      '适度分散，5-10个标的',
+      '充分分散，10个以上标的',
+      '全部投资指数基金'
+    ]
+  }
 ];
 
 // 数学与金融能力测试问题
@@ -180,4 +329,10 @@ export const likertOptions = [
 ];
 
 // 需要反向计分的题目ID
-export const reverseScoreQuestions = ['p3', 'p7', 'p10', 'p12', 'p15', 'p19'];
+export const reverseScoreQuestions = [
+  'p3', 'p7', 'p10', // 开放性反向题
+  'p13', 'p17', 'p20', // 尽责性反向题
+  'p22', 'p26', 'p30', // 外向性反向题
+  'p32', 'p35', 'p38', 'p40', // 宜人性反向题
+  'p42', 'p46', 'p49' // 神经质反向题
+];

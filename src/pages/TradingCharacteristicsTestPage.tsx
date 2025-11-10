@@ -8,25 +8,21 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useTest } from '@/contexts/TestContext';
 import { testResultApi } from '@/db/api';
-import { mathFinanceQuestions, mathFinanceAnswers } from '@/data/questions';
-import type { MathFinanceScores } from '@/types/types';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { tradingCharacteristicsQuestions } from '@/data/questions';
+import type { TradingCharacteristics } from '@/types/types';
+import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 
-const MathFinanceTestPage: React.FC = () => {
+const TradingCharacteristicsTestPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { testId, setMathFinanceScores, progress, setProgress } = useTest();
+  const { testId, setTradingCharacteristics, progress, setProgress } = useTest();
   const [answers, setAnswers] = useState<Record<string, number>>({});
 
-  // 检查是否完成了前面的测试
+  // 检查是否完成了人格测试
   React.useEffect(() => {
-    if (
-      !testId ||
-      !progress.completed_tests.includes('personality') ||
-      !progress.completed_tests.includes('trading_characteristics')
-    ) {
+    if (!testId || !progress.completed_tests.includes('personality')) {
       toast({
-        title: '请先完成前面的测试',
+        title: '请先完成人格测试',
         description: '请按顺序完成测试',
         variant: 'destructive'
       });
@@ -36,7 +32,7 @@ const MathFinanceTestPage: React.FC = () => {
 
   // 计算进度
   const answeredCount = Object.keys(answers).length;
-  const progressPercentage = (answeredCount / mathFinanceQuestions.length) * 100;
+  const progressPercentage = (answeredCount / tradingCharacteristicsQuestions.length) * 100;
 
   // 处理答案选择
   const handleAnswerChange = (questionId: string, value: number) => {
@@ -46,49 +42,41 @@ const MathFinanceTestPage: React.FC = () => {
     }));
   };
 
-  // 计算分数
-  const calculateScores = (): MathFinanceScores => {
-    let correctAnswers = 0;
-
-    mathFinanceQuestions.forEach((question) => {
-      const userAnswer = answers[question.id];
-      const correctAnswer = mathFinanceAnswers[question.id];
-
-      if (userAnswer === correctAnswer) {
-        correctAnswers++;
-      }
-    });
-
-    const totalQuestions = mathFinanceQuestions.length;
-    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-
-    return {
-      total_score: correctAnswers,
-      correct_answers: correctAnswers,
-      total_questions: totalQuestions,
-      percentage
+  // 生成交易特征分析
+  const generateCharacteristics = (): TradingCharacteristics => {
+    const characteristics: TradingCharacteristics = {
+      trading_frequency: tradingCharacteristicsQuestions[0].options?.[answers['t1'] || 0] || '',
+      preferred_instruments: tradingCharacteristicsQuestions[1].options?.[answers['t2'] || 0] || '',
+      analysis_method: tradingCharacteristicsQuestions[2].options?.[answers['t3'] || 0] || '',
+      technical_preference: tradingCharacteristicsQuestions[3].options?.[answers['t4'] || 0] || '',
+      decision_basis: tradingCharacteristicsQuestions[4].options?.[answers['t5'] || 0] || '',
+      investment_philosophy: tradingCharacteristicsQuestions[5].options?.[answers['t6'] || 0] || '',
+      learning_style: tradingCharacteristicsQuestions[6].options?.[answers['t7'] || 0] || '',
+      portfolio_approach: tradingCharacteristicsQuestions[7].options?.[answers['t8'] || 0] || ''
     };
+
+    return characteristics;
   };
 
   // 提交测试
   const handleSubmit = async () => {
-    if (answeredCount < mathFinanceQuestions.length) {
+    if (answeredCount < tradingCharacteristicsQuestions.length) {
       toast({
         title: '请完成所有题目',
-        description: `还有 ${mathFinanceQuestions.length - answeredCount} 道题未完成`,
+        description: `还有 ${tradingCharacteristicsQuestions.length - answeredCount} 道题未完成`,
         variant: 'destructive'
       });
       return;
     }
 
     try {
-      const scores = calculateScores();
-      setMathFinanceScores(scores);
+      const characteristics = generateCharacteristics();
+      setTradingCharacteristics(characteristics);
 
       // 更新数据库
       if (testId) {
         await testResultApi.updateTestResult(testId, {
-          math_finance_scores: scores
+          trading_characteristics: characteristics
         });
       }
 
@@ -96,17 +84,17 @@ const MathFinanceTestPage: React.FC = () => {
       setProgress({
         ...progress,
         current_step: 2,
-        completed_tests: [...progress.completed_tests, 'math_finance']
+        completed_tests: [...progress.completed_tests, 'trading_characteristics']
       });
 
       toast({
-        title: '数学金融测试完成',
-        description: '正在进入风险偏好测试',
+        title: '交易特征评估完成',
+        description: '正在进入数学金融能力测试',
       });
 
-      navigate('/test/risk-preference');
+      navigate('/test/math-finance');
     } catch (error) {
-      console.error('Submit math finance test error:', error);
+      console.error('Submit trading characteristics test error:', error);
       toast({
         title: '提交失败',
         description: '无法保存测试结果，请稍后重试',
@@ -125,9 +113,9 @@ const MathFinanceTestPage: React.FC = () => {
             返回首页
           </Button>
           <div>
-            <h1 className="text-3xl font-bold gradient-text mb-2">数学与金融能力测试</h1>
+            <h1 className="text-3xl font-bold gradient-text mb-2">交易特征评估</h1>
             <p className="text-muted-foreground">
-              评估您对投资相关数学和金融知识的理解程度
+              了解您的交易习惯、偏好和投资理念
             </p>
           </div>
         </div>
@@ -139,7 +127,7 @@ const MathFinanceTestPage: React.FC = () => {
               <div className="flex justify-between text-sm">
                 <span>测试进度</span>
                 <span className="text-primary font-medium">
-                  {answeredCount} / {mathFinanceQuestions.length}
+                  {answeredCount} / {tradingCharacteristicsQuestions.length}
                 </span>
               </div>
               <Progress value={progressPercentage} className="h-2" />
@@ -149,12 +137,17 @@ const MathFinanceTestPage: React.FC = () => {
 
         {/* Questions */}
         <div className="space-y-4">
-          {mathFinanceQuestions.map((question, index) => (
+          {tradingCharacteristicsQuestions.map((question, index) => (
             <Card key={question.id}>
               <CardHeader>
-                <CardTitle className="text-lg">
-                  {index + 1}. {question.text}
-                </CardTitle>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 mt-1">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg flex-1">
+                    {index + 1}. {question.text}
+                  </CardTitle>
+                </div>
               </CardHeader>
               <CardContent>
                 <RadioGroup
@@ -187,7 +180,7 @@ const MathFinanceTestPage: React.FC = () => {
         <div className="flex justify-end">
           <Button
             onClick={handleSubmit}
-            disabled={answeredCount < mathFinanceQuestions.length}
+            disabled={answeredCount < tradingCharacteristicsQuestions.length}
             className="btn-glow"
           >
             完成并继续
@@ -199,4 +192,4 @@ const MathFinanceTestPage: React.FC = () => {
   );
 };
 
-export default MathFinanceTestPage;
+export default TradingCharacteristicsTestPage;
