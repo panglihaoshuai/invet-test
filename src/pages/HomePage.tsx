@@ -2,9 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2 } from 'lucide-react';
+import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2, TestTube2, Info } from 'lucide-react';
 import TraderProfileCard from '@/components/common/TraderProfileCard';
 
 const HomePage: React.FC = () => {
@@ -62,6 +63,26 @@ const HomePage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Test Mode Alert */}
+        <Alert className="border-primary/50 bg-primary/5">
+          <Info className="h-4 w-4" />
+          <AlertTitle className="flex items-center justify-between">
+            <span>系统演示模式</span>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/system-test-guide')}
+            >
+              <TestTube2 className="mr-2 h-4 w-4" />
+              查看测试指南
+            </Button>
+          </AlertTitle>
+          <AlertDescription>
+            当前系统运行在演示模式下。登录时验证码会直接显示在提示框中，无需真实邮件服务。
+            点击右侧按钮查看完整的系统测试指南。
+          </AlertDescription>
+        </Alert>
 
         {/* Main CTA */}
         <Card className="border-primary/20">

@@ -17,6 +17,7 @@ import AuctionGamePage from './pages/AuctionGamePage';
 import TwoDoorsGamePage from './pages/TwoDoorsGamePage';
 import HerdGamePage from './pages/HerdGamePage';
 import QuickReactionGamePage from './pages/QuickReactionGamePage';
+import SystemTestGuidePage from './pages/SystemTestGuidePage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -126,6 +127,11 @@ const routes: RouteConfig[] = [
     name: 'Quick Reaction Game',
     path: '/games/quick-reaction',
     element: <QuickReactionGamePage />
+  },
+  {
+    name: 'System Test Guide',
+    path: '/system-test-guide',
+    element: <SystemTestGuidePage />
   }
 ];
 
