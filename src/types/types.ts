@@ -29,6 +29,16 @@ export interface TestResult {
   created_at: string;
 }
 
+export interface GameResult {
+  id: string;
+  user_id?: string;
+  game_type: string;
+  score: number;
+  game_data: any;
+  completed_at: string;
+  created_at: string;
+}
+
 export interface Report {
   id: string;
   user_id: string;

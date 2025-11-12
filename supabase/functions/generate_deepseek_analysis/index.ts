@@ -172,8 +172,8 @@ Deno.serve(async (req) => {
       return new Response(null, { headers: corsHeaders });
     }
 
-    const { testResultId, orderId } = await req.json();
-    if (!testResultId || !orderId) {
+    const { testResultId, orderId, testData } = await req.json();
+    if (!testResultId || !orderId || !testData) {
       throw new Error("缺少必要参数");
     }
 
@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
       .select("*")
       .eq("id", orderId)
       .eq("status", "completed")
-      .single();
+      .maybeSingle();
 
     if (orderError || !order) {
       throw new Error("订单不存在或未支付");
@@ -212,29 +212,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 获取测试结果
-    const { data: testResult, error: testError } = await supabase
-      .from("test_results")
-      .select("*")
-      .eq("id", testResultId)
-      .single();
-
-    if (testError || !testResult) {
-      throw new Error("测试结果不存在");
-    }
-
     // 构建提示词并调用DeepSeek API
-    const prompt = buildDeepSeekPrompt(testResult);
+    const prompt = buildDeepSeekPrompt(testData);
     const analysisContent = await callDeepSeekAPI(prompt);
 
     // 保存分析结果
     const testDataSummary = {
-      personality_scores: testResult.personality_scores,
-      math_finance_scores: testResult.math_finance_scores,
-      risk_preference_scores: testResult.risk_preference_scores,
-      trading_characteristics: testResult.trading_characteristics,
-      investment_style: testResult.investment_style,
-      euclidean_distance: testResult.euclidean_distance,
+      personality_scores: testData.personality_scores,
+      math_finance_scores: testData.math_finance_scores,
+      risk_preference_scores: testData.risk_preference_scores,
+      trading_characteristics: testData.trading_characteristics,
+      investment_style: testData.investment_style,
+      euclidean_distance: testData.euclidean_distance,
     };
 
     const { data: analysis, error: insertError } = await supabase

@@ -330,8 +330,8 @@ export const paymentApi = {
 
 // DeepSeek分析相关API
 export const deepseekApi = {
-  // 生成DeepSeek分析
-  async generateAnalysis(testResultId: string, orderId: string): Promise<DeepSeekAnalysis | null> {
+  // 生成DeepSeek分析（testData从本地存储传入）
+  async generateAnalysis(testResultId: string, orderId: string, testData: any): Promise<DeepSeekAnalysis | null> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -343,7 +343,8 @@ export const deepseekApi = {
       const { data, error } = await supabase.functions.invoke('generate_deepseek_analysis', {
         body: {
           testResultId,
-          orderId
+          orderId,
+          testData // 从本地存储传入的测试数据
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`

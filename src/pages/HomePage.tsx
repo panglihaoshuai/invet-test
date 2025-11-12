@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2, TestTube2, Info } from 'lucide-react';
 import TraderProfileCard from '@/components/common/TraderProfileCard';
+import LocalStorageNotice from '@/components/common/LocalStorageNotice';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -83,6 +84,9 @@ const HomePage: React.FC = () => {
             点击右侧按钮查看完整的系统测试指南。
           </AlertDescription>
         </Alert>
+
+        {/* Local Storage Notice */}
+        <LocalStorageNotice variant="inline" showActions={true} />
 
         {/* Main CTA */}
         <Card className="border-primary/20">
