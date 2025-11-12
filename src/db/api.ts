@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { User, VerificationCode, TestResult, Report } from '@/types/types';
+import type { User, VerificationCode, TestResult, Report, Order, DeepSeekAnalysis, OrderItem } from '@/types/types';
 
 // 用户相关API
 export const userApi = {
@@ -238,6 +238,157 @@ export const reportApi = {
     
     if (error) {
       console.error('Error getting user reports:', error);
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  }
+};
+
+// 支付相关API
+export const paymentApi = {
+  // 创建Stripe支付会话
+  async createCheckoutSession(items: OrderItem[], testResultId: string): Promise<{ url: string; sessionId: string; orderId: string } | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('create_stripe_checkout', {
+        body: {
+          items,
+          test_result_id: testResultId,
+          currency: 'cny',
+          payment_method_types: ['card']
+        },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`
+        } : {}
+      });
+
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        return null;
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      return null;
+    }
+  },
+
+  // 验证支付状态
+  async verifyPayment(sessionId: string): Promise<any> {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify_stripe_payment', {
+        body: { sessionId }
+      });
+
+      if (error) {
+        console.error('Error verifying payment:', error);
+        return null;
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      return null;
+    }
+  },
+
+  // 获取用户订单列表
+  async getUserOrders(userId: string): Promise<Order[]> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select()
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error getting user orders:', error);
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  },
+
+  // 根据测试结果ID获取已完成的订单
+  async getCompletedOrderByTestResult(testResultId: string): Promise<Order | null> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select()
+      .eq('test_result_id', testResultId)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error getting completed order:', error);
+      return null;
+    }
+    return data;
+  }
+};
+
+// DeepSeek分析相关API
+export const deepseekApi = {
+  // 生成DeepSeek分析
+  async generateAnalysis(testResultId: string, orderId: string): Promise<DeepSeekAnalysis | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        console.error('User not authenticated');
+        return null;
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate_deepseek_analysis', {
+        body: {
+          testResultId,
+          orderId
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) {
+        console.error('Error generating analysis:', error);
+        return null;
+      }
+
+      return data.data.analysis;
+    } catch (error) {
+      console.error('Error generating analysis:', error);
+      return null;
+    }
+  },
+
+  // 获取测试结果的DeepSeek分析
+  async getAnalysisByTestResult(testResultId: string): Promise<DeepSeekAnalysis | null> {
+    const { data, error } = await supabase
+      .from('deepseek_analyses')
+      .select()
+      .eq('test_result_id', testResultId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error getting analysis:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // 获取用户的所有DeepSeek分析
+  async getUserAnalyses(userId: string): Promise<DeepSeekAnalysis[]> {
+    const { data, error } = await supabase
+      .from('deepseek_analyses')
+      .select()
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error getting user analyses:', error);
       return [];
     }
     return Array.isArray(data) ? data : [];

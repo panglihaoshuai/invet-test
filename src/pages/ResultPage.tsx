@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTest } from '@/contexts/TestContext';
-import { testResultApi, reportApi } from '@/db/api';
+import { testResultApi, reportApi, paymentApi, deepseekApi } from '@/db/api';
 import {
   matchInvestmentStyle,
   generatePersonalityAnalysis,
@@ -14,8 +14,10 @@ import {
   generateTradingCharacteristicsAnalysis,
   generateDetailedRecommendations
 } from '@/utils/calculations';
-import type { ReportData } from '@/types/types';
+import type { ReportData, DeepSeekAnalysis } from '@/types/types';
 import { Download, Home, Printer, TrendingUp, Brain, Calculator, Shield } from 'lucide-react';
+import PurchaseAnalysisCard from '@/components/analysis/PurchaseAnalysisCard';
+import DeepSeekAnalysisCard from '@/components/analysis/DeepSeekAnalysisCard';
 
 const ResultPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +26,9 @@ const ResultPage: React.FC = () => {
   const { testId, personalityScores, tradingCharacteristics, mathFinanceScores, riskPreferenceScores, resetTest } = useTest();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
+  const [deepseekAnalysis, setDeepseekAnalysis] = useState<DeepSeekAnalysis | null>(null);
+  const [hasPurchased, setHasPurchased] = useState(false);
+  const [isCheckingPurchase, setIsCheckingPurchase] = useState(true);
 
   useEffect(() => {
     if (!testId || !personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores) {
@@ -37,7 +42,31 @@ const ResultPage: React.FC = () => {
     }
 
     generateReport();
+    checkPurchaseStatus();
   }, []);
+
+  const checkPurchaseStatus = async () => {
+    if (!testId) return;
+
+    setIsCheckingPurchase(true);
+    try {
+      // 检查是否已购买
+      const order = await paymentApi.getCompletedOrderByTestResult(testId);
+      if (order) {
+        setHasPurchased(true);
+        
+        // 检查是否已有分析
+        const analysis = await deepseekApi.getAnalysisByTestResult(testId);
+        if (analysis) {
+          setDeepseekAnalysis(analysis);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking purchase status:', error);
+    } finally {
+      setIsCheckingPurchase(false);
+    }
+  };
 
   const generateReport = async () => {
     if (!personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores || !user) {
@@ -339,6 +368,28 @@ const ResultPage: React.FC = () => {
               </ul>
             </CardContent>
           </Card>
+
+          {/* DeepSeek AI Analysis Section */}
+          {!isCheckingPurchase && (
+            <div className="print:hidden">
+              {deepseekAnalysis ? (
+                <DeepSeekAnalysisCard analysis={deepseekAnalysis} />
+              ) : hasPurchased ? (
+                <Card className="border-primary/30">
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      您已购买深度分析，正在生成中...
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : testId ? (
+                <PurchaseAnalysisCard 
+                  testResultId={testId} 
+                  onPurchaseComplete={checkPurchaseStatus}
+                />
+              ) : null}
+            </div>
+          )}
 
           {/* Disclaimer */}
           <Card className="border-destructive/20">

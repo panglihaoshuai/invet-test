@@ -18,6 +18,7 @@ import TwoDoorsGamePage from './pages/TwoDoorsGamePage';
 import HerdGamePage from './pages/HerdGamePage';
 import QuickReactionGamePage from './pages/QuickReactionGamePage';
 import SystemTestGuidePage from './pages/SystemTestGuidePage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -132,6 +133,11 @@ const routes: RouteConfig[] = [
     name: 'System Test Guide',
     path: '/system-test-guide',
     element: <SystemTestGuidePage />
+  },
+  {
+    name: 'Payment Success',
+    path: '/payment-success',
+    element: <PaymentSuccessPage />
   }
 ];
 

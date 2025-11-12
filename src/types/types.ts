@@ -108,3 +108,44 @@ export interface TestProgress {
   total_steps: number;
   completed_tests: string[];
 }
+
+// 订单状态类型
+export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'refunded';
+
+// 订单项类型
+export interface OrderItem {
+  name: string;
+  price: number;
+  quantity: number;
+  image_url?: string;
+}
+
+// 订单类型
+export interface Order {
+  id: string;
+  user_id: string | null;
+  items: OrderItem[];
+  total_amount: number;
+  currency: string;
+  status: OrderStatus;
+  stripe_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  customer_email: string | null;
+  customer_name: string | null;
+  test_result_id: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// DeepSeek分析类型
+export interface DeepSeekAnalysis {
+  id: string;
+  user_id: string;
+  test_result_id: string;
+  order_id: string;
+  analysis_content: string;
+  prompt_used: string;
+  test_data_summary: any;
+  created_at: string;
+}
