@@ -159,3 +159,57 @@ export interface DeepSeekAnalysis {
   test_data_summary: any;
   created_at: string;
 }
+
+// 管理员系统类型
+export type UserRole = 'user' | 'admin';
+
+export interface Profile {
+  id: string;
+  email: string;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SystemSetting {
+  id: string;
+  setting_key: string;
+  setting_value: any;
+  description: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestSubmission {
+  id: string;
+  user_id: string | null;
+  test_type: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  country: string | null;
+  city: string | null;
+  completed: boolean;
+  created_at: string;
+}
+
+export interface AdminLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  details: any;
+  ip_address: string | null;
+  created_at: string;
+}
+
+export interface AdminStatistics {
+  total_tests: number;
+  unique_users: number;
+  total_payments: number;
+  total_revenue: number;
+  tests_today: number;
+  payments_today: number;
+}
+
