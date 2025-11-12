@@ -19,6 +19,7 @@ import HerdGamePage from './pages/HerdGamePage';
 import QuickReactionGamePage from './pages/QuickReactionGamePage';
 import SystemTestGuidePage from './pages/SystemTestGuidePage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import AdminDashboard from './pages/AdminDashboard';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -138,6 +139,11 @@ const routes: RouteConfig[] = [
     name: 'Payment Success',
     path: '/payment-success',
     element: <PaymentSuccessPage />
+  },
+  {
+    name: 'Admin Dashboard',
+    path: '/admin',
+    element: <AdminDashboard />
   }
 ];
 
