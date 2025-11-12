@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Profile, SystemSetting, TestSubmission, AdminLog, AdminStatistics } from '@/types/types';
+import type { Profile, SystemSetting, TestSubmission, AdminLog, AdminStatistics, UserPricingInfo } from '@/types/types';
 
 // 管理员相关API
 export const adminApi = {
@@ -240,6 +240,80 @@ export const adminApi = {
       return true;
     } catch (error) {
       console.error('Error updating user role:', error);
+      return false;
+    }
+  },
+
+  // 获取用户的分析价格
+  async getUserAnalysisPrice(userId?: string): Promise<number> {
+    try {
+      let targetUserId = userId;
+      
+      if (!targetUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return 399; // 默认首次价格
+        targetUserId = user.id;
+      }
+
+      const { data, error } = await supabase.rpc('get_user_analysis_price', {
+        p_user_id: targetUserId
+      });
+
+      if (error) {
+        console.error('Error getting user analysis price:', error);
+        return 399; // 默认首次价格
+      }
+      return data || 399;
+    } catch (error) {
+      console.error('Error getting user analysis price:', error);
+      return 399;
+    }
+  },
+
+  // 获取当前用户的定价信息
+  async getCurrentUserPricingInfo(): Promise<UserPricingInfo | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('user_pricing_info')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error getting pricing info:', error);
+        return null;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error getting pricing info:', error);
+      return null;
+    }
+  },
+
+  // 更新系统配置中的管理员邮箱
+  async updateAdminEmail(email: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('system_config')
+        .update({ 
+          config_value: email,
+          updated_at: new Date().toISOString()
+        })
+        .eq('config_key', 'admin_email');
+
+      if (error) {
+        console.error('Error updating admin email:', error);
+        return false;
+      }
+
+      // 记录操作
+      await this.logAction('update_admin_email', 'system_config', null, { email });
+      return true;
+    } catch (error) {
+      console.error('Error updating admin email:', error);
       return false;
     }
   }

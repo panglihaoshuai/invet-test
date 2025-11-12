@@ -1,303 +1,224 @@
-# DeepSeek AI 分析功能 - 快速启动指南
+# 快速开始指南
 
-## 🚀 5分钟快速配置
+## 🚀 5分钟快速设置
 
-### 步骤 1: 获取 Stripe API 密钥
+### 步骤 1: 配置管理员邮箱
 
-1. 访问 [Stripe Dashboard](https://dashboard.stripe.com/register)
-2. 注册/登录账号
-3. 进入 **Developers → API keys**
-4. 复制 **Secret key**（以 `sk_test_` 开头的测试密钥）
+打开项目根目录的 `.env` 文件，找到这一行：
 
-### 步骤 2: 获取 DeepSeek API 密钥
-
-1. 访问 [DeepSeek Platform](https://platform.deepseek.com)
-2. 注册/登录账号
-3. 进入 **API Keys** 页面
-4. 创建新的 API Key 并复制
-
-### 步骤 3: 配置本地环境变量
-
-编辑项目根目录的 `.env` 文件：
-
-```bash
-# 取消注释并填入你的密钥
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
+```env
+VITE_ADMIN_EMAIL=your-admin-email@example.com
 ```
 
-### 步骤 4: 配置 Supabase Edge Functions
+将 `your-admin-email@example.com` 替换为您的实际邮箱地址，例如：
 
-**方式一：使用 Supabase Dashboard**
-
-1. 访问 [Supabase Dashboard](https://supabase.com/dashboard)
-2. 选择你的项目
-3. 进入 **Project Settings → Edge Functions**
-4. 添加以下环境变量：
-   - `STRIPE_SECRET_KEY`: 你的 Stripe 密钥
-   - `DEEPSEEK_API_KEY`: 你的 DeepSeek 密钥
-
-**方式二：使用 Supabase CLI**
-
-```bash
-# 安装 Supabase CLI（如果还没安装）
-npm install -g supabase
-
-# 登录
-supabase login
-
-# 设置密钥
-supabase secrets set STRIPE_SECRET_KEY=sk_test_your_key
-supabase secrets set DEEPSEEK_API_KEY=your_key
+```env
+VITE_ADMIN_EMAIL=admin@mycompany.com
 ```
 
-### 步骤 5: 测试功能
-
-1. **启动应用**（如果还没启动）
-   ```bash
-   npm run dev
-   ```
-
-2. **完成测评**
-   - 访问应用首页
-   - 登录账号
-   - 完成所有测试（人格、数学金融、风险偏好、交易特征）
-
-3. **测试支付**
-   - 在结果页面找到 "解锁 AI 深度分析" 卡片
-   - 点击 "立即购买深度分析"
-   - 使用测试卡号：`4242 4242 4242 4242`
-   - 过期日期：任意未来日期
-   - CVC：任意3位数字
-
-4. **查看分析**
-   - 支付成功后会自动跳转
-   - 等待 DeepSeek AI 生成分析（约10-30秒）
-   - 在结果页面查看完整的专业分析报告
-
-## ✅ 验证清单
-
-配置完成后，请确认以下内容：
-
-- [ ] `.env` 文件中已填入 `STRIPE_SECRET_KEY`
-- [ ] `.env` 文件中已填入 `DEEPSEEK_API_KEY`
-- [ ] Supabase Edge Functions 中已配置两个密钥
-- [ ] 能够成功创建支付会话（点击购买按钮后打开 Stripe 页面）
-- [ ] 能够完成测试支付
-- [ ] 支付成功后能看到成功页面
-- [ ] DeepSeek 分析能够正常生成
-- [ ] 在结果页面能看到完整的分析报告
-
-## 🧪 测试卡号
-
-Stripe 提供以下测试卡号：
-
-| 卡号 | 结果 |
-|------|------|
-| 4242 4242 4242 4242 | 支付成功 |
-| 4000 0000 0000 0002 | 卡被拒绝 |
-| 4000 0000 0000 9995 | 资金不足 |
-| 4000 0025 0000 3155 | 需要 3D Secure 验证 |
-
-**其他信息**：
-- 过期日期：任意未来日期（如 12/25）
-- CVC：任意3位数字（如 123）
-- 邮编：任意5位数字（如 12345）
-
-## 📊 功能验证
-
-### 1. 支付流程验证
-
-```bash
-# 检查订单是否创建
-# 在 Supabase Dashboard → Table Editor → orders
-# 应该能看到新创建的订单记录，status 为 'pending'
-
-# 完成支付后
-# status 应该变为 'completed'
-# completed_at 应该有时间戳
-```
-
-### 2. 分析生成验证
-
-```bash
-# 检查分析是否生成
-# 在 Supabase Dashboard → Table Editor → deepseek_analyses
-# 应该能看到新生成的分析记录
-# analysis_content 字段包含完整的分析文本
-```
-
-### 3. Edge Functions 日志
-
-```bash
-# 查看 Edge Functions 日志（如果有问题）
-supabase functions logs create_stripe_checkout
-supabase functions logs verify_stripe_payment
-supabase functions logs generate_deepseek_analysis
-```
-
-## 🔧 常见问题
-
-### Q1: 点击购买按钮后没有反应？
-
-**可能原因**：
-- Stripe 密钥未配置或配置错误
-- Edge Function 未部署或配置错误
-
-**解决方法**：
-1. 检查 `.env` 文件中的 `STRIPE_SECRET_KEY`
-2. 检查 Supabase Edge Functions 环境变量
-3. 查看浏览器控制台错误信息
-4. 查看 Edge Function 日志
-
-### Q2: 支付成功但分析未生成？
-
-**可能原因**：
-- DeepSeek API 密钥未配置或配置错误
-- DeepSeek API 配额不足
-- 网络问题
-
-**解决方法**：
-1. 检查 `.env` 文件中的 `DEEPSEEK_API_KEY`
-2. 检查 Supabase Edge Functions 环境变量
-3. 查看 Edge Function 日志：`supabase functions logs generate_deepseek_analysis`
-4. 检查 DeepSeek 账户余额和配额
-
-### Q3: 如何查看 Edge Function 错误？
-
-```bash
-# 实时查看日志
-supabase functions logs create_stripe_checkout --tail
-
-# 查看最近的错误
-supabase functions logs create_stripe_checkout --limit 50
-```
-
-### Q4: 如何重新部署 Edge Functions？
-
-如果修改了 Edge Function 代码或配置：
-
-```bash
-# 重新部署单个函数
-supabase functions deploy create_stripe_checkout
-
-# 重新部署所有函数
-supabase functions deploy create_stripe_checkout
-supabase functions deploy verify_stripe_payment
-supabase functions deploy generate_deepseek_analysis
-```
-
-### Q5: 测试环境如何切换到生产环境？
-
-1. **获取生产密钥**
-   - Stripe: 使用 `sk_live_` 开头的密钥
-   - DeepSeek: 使用生产环境的 API Key
-
-2. **更新配置**
-   - 更新 `.env` 文件
-   - 更新 Supabase Edge Functions 环境变量
-
-3. **测试验证**
-   - 使用真实卡号进行小额测试
-   - 验证支付和分析生成流程
-
-## 💡 最佳实践
-
-### 1. 安全性
-
-- ✅ **永远不要**将 API 密钥提交到 Git 仓库
-- ✅ 使用环境变量存储敏感信息
-- ✅ 定期轮换 API 密钥
-- ✅ 在生产环境使用 HTTPS
-
-### 2. 成本控制
-
-- ✅ 在测试阶段使用 Stripe 测试模式
-- ✅ 监控 DeepSeek API 使用量
-- ✅ 设置 API 调用限制
-- ✅ 实现分析结果缓存（已实现）
-
-### 3. 用户体验
-
-- ✅ 提供清晰的支付流程说明
-- ✅ 显示支付进度和状态
-- ✅ 处理支付失败情况
-- ✅ 提供友好的错误提示
-
-### 4. 监控和维护
-
-- ✅ 定期检查 Edge Function 日志
-- ✅ 监控支付成功率
-- ✅ 监控分析生成成功率
-- ✅ 收集用户反馈
-
-## 📈 性能优化
-
-### 1. 分析缓存
-
-系统已实现分析结果缓存：
-- 首次生成后保存到数据库
-- 后续访问直接从数据库读取
-- 避免重复调用 DeepSeek API
-
-### 2. 异步处理
-
-- 支付验证后立即返回成功页面
-- 分析生成在后台异步进行
-- 用户可以先查看基础报告
-
-### 3. 错误重试
-
-如果分析生成失败：
-- 用户可以在结果页面手动重试
-- 系统会检查是否已支付
-- 不会重复扣费
-
-## 📞 获取帮助
-
-如果遇到问题：
-
-1. **查看文档**
-   - `DEEPSEEK_INTEGRATION.md` - 完整技术文档
-   - `PAYMENT_FLOW.md` - 流程图和架构说明
-   - `IMPLEMENTATION_SUMMARY.md` - 功能总结
-
-2. **检查日志**
-   - 浏览器控制台
-   - Supabase Edge Functions 日志
-   - Stripe Dashboard 事件日志
-
-3. **调试工具**
-   - Stripe Dashboard → Events
-   - Supabase Dashboard → Logs
-   - DeepSeek Platform → Usage
-
-## 🎯 下一步
-
-配置完成后，你可以：
-
-1. **自定义分析内容**
-   - 修改 `generate_deepseek_analysis/index.ts` 中的提示词
-   - 调整分析的结构和重点
-
-2. **调整价格**
-   - 修改 `PurchaseAnalysisCard.tsx` 中的价格显示
-   - 更新 `createCheckoutSession` 调用中的金额
-
-3. **添加更多功能**
-   - 支持多种分析套餐
-   - 添加优惠券系统
-   - 实现推荐奖励
-
-4. **优化用户体验**
-   - 添加分析预览
-   - 支持 PDF 导出
-   - 添加分享功能
+**💡 提示**：这个邮箱将自动成为管理员账号。
 
 ---
 
-**配置完成！** 🎉
+### 步骤 2: 注册管理员账号
 
-现在你的投资心理测评系统已经完全集成了 DeepSeek AI 深度分析功能。用户可以通过支付 ¥3.99 获取专业的投资心理分析报告。
+1. 启动应用（如果还没启动）
+2. 访问登录页面
+3. 输入您在步骤1中配置的邮箱
+4. 点击"发送验证码"
+5. 输入收到的6位验证码
+6. 点击"验证登录"
 
-如有任何问题，请参考上述文档或查看 Edge Function 日志。
+**✨ 神奇的事情发生了**：系统会自动识别这是管理员邮箱，并将您设置为管理员！
+
+---
+
+### 步骤 3: 访问管理后台
+
+登录成功后，您会自动跳转到管理后台 (`/admin`)。
+
+在这里您可以：
+- 📊 查看系统统计数据
+- 👥 管理用户
+- 💰 查看收入统计
+- 🎯 查看阶梯定价效果
+- ⚙️ 控制系统功能开关
+
+---
+
+## 🎯 阶梯定价已自动启用
+
+系统已经配置好智能定价策略：
+
+| 用户购买次数 | 价格 | 自动生效 |
+|------------|------|---------|
+| 第 1 次 | ¥3.99 | ✅ |
+| 第 2 次 | ¥2.99 | ✅ |
+| 第 3 次及以上 | ¥0.99 | ✅ |
+
+**无需任何额外配置**，用户在购买时会自动看到对应的价格！
+
+---
+
+## 📋 检查清单
+
+完成以下检查，确保一切正常：
+
+- [ ] `.env` 文件中已设置 `VITE_ADMIN_EMAIL`
+- [ ] 使用管理员邮箱成功注册
+- [ ] 登录后自动跳转到 `/admin`
+- [ ] 能看到管理后台界面
+- [ ] 统计数据正常显示
+- [ ] 阶梯定价统计面板可见
+
+---
+
+## 🎨 用户看到的效果
+
+### 首次购买用户
+用户会看到：
+- 价格：¥3.99
+- 提示：原价 ¥19.99，限时 80% OFF
+
+### 第二次购买用户
+用户会看到：
+- 价格：¥2.99
+- 提示：第二次购买，再降 ¥1.00
+- 提示：下次更低至 ¥0.99！
+
+### 老用户（3次及以上）
+用户会看到：
+- 价格：¥0.99
+- 提示：最低价格
+- 感谢：感谢您的持续支持！
+
+---
+
+## 🔧 常见问题
+
+### Q: 我配置了邮箱，但没有自动成为管理员？
+
+**A:** 请检查：
+1. `.env` 文件是否保存
+2. 邮箱地址是否完全匹配（包括大小写）
+3. 是否重启了应用
+
+如果还是不行，可以手动设置：
+```sql
+UPDATE profiles 
+SET role = 'admin'::user_role 
+WHERE email = 'your-email@example.com';
+```
+
+### Q: 如何添加更多管理员？
+
+**A:** 两种方法：
+
+**方法1**（推荐）：在管理后台操作
+1. 登录管理后台
+2. 进入"用户管理"标签
+3. 找到要提升的用户
+4. 点击"设为管理员"
+
+**方法2**：直接修改数据库
+```sql
+UPDATE profiles 
+SET role = 'admin'::user_role 
+WHERE email = 'another-admin@example.com';
+```
+
+### Q: 价格可以修改吗？
+
+**A:** 可以！修改数据库函数即可：
+
+```sql
+CREATE OR REPLACE FUNCTION get_user_analysis_price(p_user_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  completed_count integer;
+  price integer;
+BEGIN
+  SELECT COUNT(*)::integer INTO completed_count
+  FROM orders
+  WHERE user_id = p_user_id 
+    AND status = 'completed'
+    AND items::jsonb @> '[{"type": "deepseek_analysis"}]'::jsonb;
+
+  -- 在这里修改价格
+  IF completed_count = 0 THEN
+    price := 499; -- 改为 ¥4.99
+  ELSIF completed_count = 1 THEN
+    price := 399; -- 改为 ¥3.99
+  ELSE
+    price := 199; -- 改为 ¥1.99
+  END IF;
+
+  RETURN price;
+END;
+$$;
+```
+
+### Q: 如何查看用户的购买历史？
+
+**A:** 在管理后台的"测试提交"标签中可以看到所有用户的活动记录。
+
+或者直接查询数据库：
+```sql
+SELECT * FROM user_pricing_info 
+WHERE email = 'user@example.com';
+```
+
+---
+
+## 📚 更多文档
+
+需要更详细的信息？查看这些文档：
+
+- 📧 [管理员邮箱配置详细指南](./ADMIN_EMAIL_SETUP.md)
+- 💰 [阶梯定价系统详细说明](./PROGRESSIVE_PRICING_GUIDE.md)
+- 🛡️ [安全指南](./SECURITY_GUIDE.md)
+- 📊 [功能总结](./FEATURE_SUMMARY.md)
+
+---
+
+## 🎉 完成！
+
+恭喜！您已经完成了所有设置。
+
+现在您可以：
+- ✅ 使用管理员账号管理系统
+- ✅ 查看实时统计数据
+- ✅ 享受自动阶梯定价带来的好处
+- ✅ 追踪用户购买行为
+
+**祝您使用愉快！** 🚀
+
+---
+
+## 💡 小贴士
+
+1. **定期查看管理后台**
+   - 了解用户行为
+   - 监控收入情况
+   - 分析定价效果
+
+2. **关注阶梯定价统计**
+   - 首次购买转化率
+   - 复购率
+   - 忠诚用户比例
+
+3. **根据数据优化**
+   - 如果复购率低，考虑调整第二次价格
+   - 如果忠诚用户多，可以推出更多优惠
+
+4. **保持系统安全**
+   - 不要分享管理员账号
+   - 定期检查操作日志
+   - 及时处理异常活动
+
+---
+
+**需要帮助？** 查看文档或联系技术支持。

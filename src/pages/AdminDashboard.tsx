@@ -252,6 +252,48 @@ const AdminDashboard: React.FC = () => {
           </Card>
         </div>
 
+        {/* Pricing Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5" />
+              阶梯定价统计
+            </CardTitle>
+            <CardDescription>用户购买次数分布</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">首次购买 (¥3.99)</span>
+                  <Badge variant="default">{statistics?.first_time_purchases || 0}</Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  收入: ¥{(((statistics?.first_time_purchases || 0) * 399) / 100).toFixed(2)}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">第二次购买 (¥2.99)</span>
+                  <Badge variant="secondary">{statistics?.second_time_purchases || 0}</Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  收入: ¥{(((statistics?.second_time_purchases || 0) * 299) / 100).toFixed(2)}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">老用户优惠 (¥0.99)</span>
+                  <Badge variant="outline">{statistics?.repeat_purchases || 0}</Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  收入: ¥{(((statistics?.repeat_purchases || 0) * 99) / 100).toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* System Control */}
         <Card>
           <CardHeader>

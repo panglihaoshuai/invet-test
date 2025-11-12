@@ -211,5 +211,15 @@ export interface AdminStatistics {
   total_revenue: number;
   tests_today: number;
   payments_today: number;
+  first_time_purchases: number;
+  second_time_purchases: number;
+  repeat_purchases: number;
+}
+
+export interface UserPricingInfo {
+  user_id: string;
+  email: string;
+  completed_analyses: number;
+  next_price: number;
 }
 

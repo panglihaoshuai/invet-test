@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { userApi, verificationApi } from '@/db/api';
+import { adminApi } from '@/db/adminApi';
 import { Loader2, Mail, KeyRound } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
@@ -106,11 +107,17 @@ const LoginPage: React.FC = () => {
 
         if (user) {
           setUser(user);
+          
+          // 检查是否为管理员
+          const isAdmin = await adminApi.isAdmin();
+          
           toast({
             title: '登录成功',
-            description: '欢迎使用人格特质投资策略评估系统',
+            description: isAdmin ? '欢迎管理员！' : '欢迎使用人格特质投资策略评估系统',
           });
-          navigate('/');
+          
+          // 管理员跳转到管理后台，普通用户跳转到首页
+          navigate(isAdmin ? '/admin' : '/');
         } else {
           throw new Error('用户创建失败');
         }
