@@ -41,11 +41,12 @@ const LoginPage: React.FC = () => {
     setIsSending(true);
 
     try {
-      // 使用 Supabase Auth 发送 OTP
+      // 使用 Supabase Auth 发送 OTP（数字验证码）
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
           shouldCreateUser: true,
+          emailRedirectTo: undefined, // 不使用魔法链接
         }
       });
 
