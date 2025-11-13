@@ -87,10 +87,10 @@ const LoginPage: React.FC = () => {
 
   // 验证登录
   const handleVerifyCode = async () => {
-    if (code.length !== 6) {
+    if (code.length < 6 || code.length > 8) {
       toast({
         title: '验证码错误',
-        description: '请输入6位数字验证码',
+        description: '请输入完整的验证码（6-8位数字）',
         variant: 'destructive'
       });
       return;
