@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminApi, testSubmissionApi } from '@/db/adminApi';
+import GiftCodeManager from '@/components/admin/GiftCodeManager';
 import type { AdminStatistics, TestSubmission, AdminLog, Profile } from '@/types/types';
 import {
   BarChart3,
@@ -21,7 +22,8 @@ import {
   ArrowLeft,
   TrendingUp,
   TrendingDown,
-  Calendar
+  Calendar,
+  Gift
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -325,6 +327,7 @@ const AdminDashboard: React.FC = () => {
           <TabsList>
             <TabsTrigger value="tests">测试记录</TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
+            <TabsTrigger value="giftcodes">礼品码管理</TabsTrigger>
             <TabsTrigger value="logs">审计日志</TabsTrigger>
           </TabsList>
 
@@ -448,6 +451,11 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Gift Code Management */}
+          <TabsContent value="giftcodes" className="space-y-4">
+            <GiftCodeManager />
           </TabsContent>
 
           {/* Admin Logs */}

@@ -223,3 +223,45 @@ export interface UserPricingInfo {
   next_price: number;
 }
 
+export interface GiftCode {
+  id: string;
+  code: string;
+  max_redemptions: number;
+  current_redemptions: number;
+  free_analyses_count: number;
+  created_by: string | null;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GiftCodeRedemption {
+  id: string;
+  gift_code_id: string;
+  user_id: string;
+  redeemed_at: string;
+  remaining_analyses: number;
+}
+
+export interface GiftCodeStats {
+  id: string;
+  code: string;
+  max_redemptions: number;
+  current_redemptions: number;
+  free_analyses_count: number;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+  created_by_email: string | null;
+  total_redemptions: number;
+  total_remaining_analyses: number;
+}
+
+export interface RedeemGiftCodeResult {
+  success: boolean;
+  message: string;
+  free_analyses?: number;
+  remaining_analyses?: number;
+}
+
