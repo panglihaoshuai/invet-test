@@ -5,17 +5,42 @@ import type { User, VerificationCode, TestResult, Report, Order, DeepSeekAnalysi
 export const userApi = {
   // 创建或获取用户
   async upsertUser(email: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .upsert({ email }, { onConflict: 'email' })
-      .select()
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error upserting user:', error);
+    try {
+      // 首先尝试获取现有用户
+      const { data: existingUser, error: fetchError } = await supabase
+        .from('users')
+        .select()
+        .eq('email', email)
+        .maybeSingle();
+      
+      // 如果用户已存在，直接返回
+      if (existingUser) {
+        return existingUser;
+      }
+      
+      // 如果查询出错（不是"未找到"的错误），记录错误
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching user:', fetchError);
+        return null;
+      }
+      
+      // 用户不存在，创建新用户
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert({ email })
+        .select()
+        .maybeSingle();
+      
+      if (insertError) {
+        console.error('Error creating user:', insertError);
+        return null;
+      }
+      
+      return newUser;
+    } catch (error) {
+      console.error('Exception in upsertUser:', error);
       return null;
     }
-    return data;
   },
 
   // 根据邮箱获取用户

@@ -107,32 +107,36 @@ const LoginPage: React.FC = () => {
       });
 
       if (error) {
-        throw error;
+        console.error('OTP verification error:', error);
+        throw new Error('验证码错误或已过期，请重新获取验证码');
       }
 
-      if (data.user) {
-        // 创建或获取用户资料
-        const user = await userApi.upsertUser(email);
-
-        if (user) {
-          setUser(user);
-          
-          // 检查是否为管理员
-          const isAdmin = await adminApi.isAdmin();
-          
-          toast({
-            title: '登录成功',
-            description: isAdmin ? '欢迎管理员！' : '欢迎使用人格特质投资策略评估系统',
-          });
-          
-          // 管理员跳转到管理后台，普通用户跳转到首页
-          navigate(isAdmin ? '/admin' : '/');
-        } else {
-          throw new Error('用户创建失败');
-        }
-      } else {
-        throw new Error('验证失败');
+      if (!data.user) {
+        throw new Error('验证失败：未能获取用户信息');
       }
+
+      // 创建或获取用户资料
+      console.log('Creating/fetching user profile for:', email);
+      const user = await userApi.upsertUser(email);
+
+      if (!user) {
+        console.error('Failed to create/fetch user profile');
+        throw new Error('用户创建失败：无法在数据库中创建用户记录，请联系管理员');
+      }
+
+      console.log('User profile created/fetched successfully:', user);
+      setUser(user);
+      
+      // 检查是否为管理员
+      const isAdmin = await adminApi.isAdmin();
+      
+      toast({
+        title: '登录成功',
+        description: isAdmin ? '欢迎管理员！' : '欢迎使用人格特质投资策略评估系统',
+      });
+      
+      // 管理员跳转到管理后台，普通用户跳转到首页
+      navigate(isAdmin ? '/admin' : '/');
     } catch (error) {
       console.error('Verify code error:', error);
       const errorMessage = error instanceof Error ? error.message : '验证码错误或已过期';
