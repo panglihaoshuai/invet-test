@@ -38,25 +38,30 @@ export const userApi = {
 export const verificationApi = {
   // 创建验证码
   async createVerificationCode(email: string, code: string): Promise<VerificationCode | null> {
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 5); // 5分钟后过期
+    try {
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 5); // 5分钟后过期
 
-    const { data, error } = await supabase
-      .from('verification_codes')
-      .insert({
-        email,
-        code,
-        expires_at: expiresAt.toISOString(),
-        used: false
-      })
-      .select()
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error creating verification code:', error);
-      return null;
+      const { data, error } = await supabase
+        .from('verification_codes')
+        .insert({
+          email,
+          code,
+          expires_at: expiresAt.toISOString(),
+          used: false
+        })
+        .select()
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error creating verification code:', error);
+        throw new Error(`数据库错误: ${error.message}`);
+      }
+      return data;
+    } catch (error) {
+      console.error('Exception in createVerificationCode:', error);
+      throw error;
     }
-    return data;
   },
 
   // 验证验证码

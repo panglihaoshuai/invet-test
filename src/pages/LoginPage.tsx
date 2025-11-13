@@ -70,13 +70,14 @@ const LoginPage: React.FC = () => {
           });
         }, 1000);
       } else {
-        throw new Error('发送验证码失败');
+        throw new Error('保存验证码失败，请检查数据库连接');
       }
     } catch (error) {
       console.error('Send code error:', error);
+      const errorMessage = error instanceof Error ? error.message : '验证码发送失败，请稍后重试';
       toast({
         title: '发送失败',
-        description: '验证码发送失败，请稍后重试',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
