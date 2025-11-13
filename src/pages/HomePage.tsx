@@ -86,7 +86,7 @@ const HomePage: React.FC = () => {
         </Alert>
 
         {/* Local Storage Notice */}
-        <LocalStorageNotice variant="inline" showActions={true} />
+        <LocalStorageNotice variant="compact" />
 
         {/* Main CTA */}
         <Card className="border-primary/20">

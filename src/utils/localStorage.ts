@@ -57,21 +57,6 @@ export const testResultStorage = {
   exportTestResults(): string {
     const results = this.getAllTestResults();
     return JSON.stringify(results, null, 2);
-  },
-
-  // 导入测试结果（用于恢复）
-  importTestResults(jsonData: string): void {
-    try {
-      const results = JSON.parse(jsonData);
-      if (Array.isArray(results)) {
-        localStorage.setItem(STORAGE_KEYS.TEST_RESULTS, JSON.stringify(results));
-      } else {
-        throw new Error('无效的数据格式');
-      }
-    } catch (error) {
-      console.error('导入测试结果失败:', error);
-      throw new Error('导入失败，请检查数据格式');
-    }
   }
 };
 
@@ -122,21 +107,6 @@ export const gameResultStorage = {
   exportGameResults(): string {
     const results = this.getAllGameResults();
     return JSON.stringify(results, null, 2);
-  },
-
-  // 导入游戏结果
-  importGameResults(jsonData: string): void {
-    try {
-      const results = JSON.parse(jsonData);
-      if (Array.isArray(results)) {
-        localStorage.setItem(STORAGE_KEYS.GAME_RESULTS, JSON.stringify(results));
-      } else {
-        throw new Error('无效的数据格式');
-      }
-    } catch (error) {
-      console.error('导入游戏结果失败:', error);
-      throw new Error('导入失败，请检查数据格式');
-    }
   }
 };
 
@@ -220,27 +190,5 @@ export const storageUtils = {
       exportDate: new Date().toISOString()
     };
     return JSON.stringify(allData, null, 2);
-  },
-
-  // 导入所有数据
-  importAllData(jsonData: string): void {
-    try {
-      const allData = JSON.parse(jsonData);
-      
-      if (allData.testResults) {
-        localStorage.setItem(STORAGE_KEYS.TEST_RESULTS, JSON.stringify(allData.testResults));
-      }
-      
-      if (allData.gameResults) {
-        localStorage.setItem(STORAGE_KEYS.GAME_RESULTS, JSON.stringify(allData.gameResults));
-      }
-      
-      if (allData.preferences) {
-        localStorage.setItem(STORAGE_KEYS.USER_PREFERENCES, JSON.stringify(allData.preferences));
-      }
-    } catch (error) {
-      console.error('导入数据失败:', error);
-      throw new Error('导入失败，请检查数据格式');
-    }
   }
 };
