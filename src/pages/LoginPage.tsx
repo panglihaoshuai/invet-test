@@ -202,10 +202,10 @@ const LoginPage: React.FC = () => {
                   <Input
                     id="code"
                     type="text"
-                    placeholder="请输入6位验证码"
+                    placeholder="请输入验证码"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    maxLength={6}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    maxLength={8}
                     className="pl-10"
                   />
                 </div>
@@ -214,7 +214,7 @@ const LoginPage: React.FC = () => {
               <div className="flex gap-2">
                 <Button
                   onClick={handleVerifyCode}
-                  disabled={isVerifying || code.length !== 6}
+                  disabled={isVerifying || code.length < 6}
                   className="flex-1 btn-glow"
                 >
                   {isVerifying ? (
