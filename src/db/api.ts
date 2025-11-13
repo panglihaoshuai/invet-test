@@ -6,39 +6,56 @@ export const userApi = {
   // 创建或获取用户
   async upsertUser(email: string): Promise<User | null> {
     try {
+      console.log('[upsertUser] Starting for email:', email);
+      
       // 首先尝试获取现有用户
+      console.log('[upsertUser] Checking if user exists...');
       const { data: existingUser, error: fetchError } = await supabase
         .from('users')
         .select()
         .eq('email', email)
         .maybeSingle();
       
+      console.log('[upsertUser] Fetch result:', { existingUser, fetchError });
+      
       // 如果用户已存在，直接返回
       if (existingUser) {
+        console.log('[upsertUser] User exists, returning:', existingUser);
         return existingUser;
       }
       
       // 如果查询出错（不是"未找到"的错误），记录错误
       if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching user:', fetchError);
+        console.error('[upsertUser] Error fetching user:', fetchError);
+        console.error('[upsertUser] Error details:', JSON.stringify(fetchError, null, 2));
         return null;
       }
       
       // 用户不存在，创建新用户
+      console.log('[upsertUser] User does not exist, creating new user...');
       const { data: newUser, error: insertError } = await supabase
         .from('users')
         .insert({ email })
         .select()
         .maybeSingle();
       
+      console.log('[upsertUser] Insert result:', { newUser, insertError });
+      
       if (insertError) {
-        console.error('Error creating user:', insertError);
+        console.error('[upsertUser] Error creating user:', insertError);
+        console.error('[upsertUser] Error details:', JSON.stringify(insertError, null, 2));
+        console.error('[upsertUser] Error code:', insertError.code);
+        console.error('[upsertUser] Error message:', insertError.message);
+        console.error('[upsertUser] Error hint:', insertError.hint);
+        console.error('[upsertUser] Error details:', insertError.details);
         return null;
       }
       
+      console.log('[upsertUser] User created successfully:', newUser);
       return newUser;
     } catch (error) {
-      console.error('Exception in upsertUser:', error);
+      console.error('[upsertUser] Exception:', error);
+      console.error('[upsertUser] Exception details:', JSON.stringify(error, null, 2));
       return null;
     }
   },
