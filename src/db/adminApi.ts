@@ -316,6 +316,52 @@ export const adminApi = {
       console.error('Error updating admin email:', error);
       return false;
     }
+  },
+
+  // 获取 DeepSeek 功能开关状态
+  async getDeepSeekEnabled(): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('system_config')
+        .select('config_value')
+        .eq('config_key', 'deepseek_enabled')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error getting DeepSeek status:', error);
+        return false;
+      }
+
+      return data?.config_value === 'true';
+    } catch (error) {
+      console.error('Error getting DeepSeek status:', error);
+      return false;
+    }
+  },
+
+  // 更新 DeepSeek 功能开关
+  async updateDeepSeekEnabled(enabled: boolean): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('system_config')
+        .update({ 
+          config_value: enabled ? 'true' : 'false',
+          updated_at: new Date().toISOString()
+        })
+        .eq('config_key', 'deepseek_enabled');
+
+      if (error) {
+        console.error('Error updating DeepSeek status:', error);
+        return false;
+      }
+
+      // 记录操作
+      await this.logAction('update_deepseek_status', 'system_config', null, { enabled });
+      return true;
+    } catch (error) {
+      console.error('Error updating DeepSeek status:', error);
+      return false;
+    }
   }
 };
 

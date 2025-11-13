@@ -20,6 +20,7 @@ import QuickReactionGamePage from './pages/QuickReactionGamePage';
 import SystemTestGuidePage from './pages/SystemTestGuidePage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import AdminDashboard from './pages/AdminDashboard';
+import SystemSettingsPage from './pages/admin/SystemSettingsPage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -144,6 +145,11 @@ const routes: RouteConfig[] = [
     name: 'Admin Dashboard',
     path: '/admin',
     element: <AdminDashboard />
+  },
+  {
+    name: 'System Settings',
+    path: '/admin/settings',
+    element: <SystemSettingsPage />
   }
 ];
 

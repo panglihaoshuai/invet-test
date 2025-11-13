@@ -191,10 +191,16 @@ const AdminDashboard: React.FC = () => {
               <p className="text-muted-foreground">系统管理和数据统计</p>
             </div>
           </div>
-          <Badge variant="default" className="gap-2">
-            <Shield className="h-4 w-4" />
-            管理员
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => navigate('/admin/settings')}>
+              <Settings className="h-4 w-4 mr-2" />
+              系统设置
+            </Button>
+            <Badge variant="default" className="gap-2">
+              <Shield className="h-4 w-4" />
+              管理员
+            </Badge>
+          </div>
         </div>
 
         {/* Statistics Cards */}

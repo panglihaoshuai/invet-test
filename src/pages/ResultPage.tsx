@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTest } from '@/contexts/TestContext';
 import { testResultApi, reportApi, paymentApi, deepseekApi } from '@/db/api';
+import { adminApi } from '@/db/adminApi';
 import {
   matchInvestmentStyle,
   generatePersonalityAnalysis,
@@ -29,6 +30,7 @@ const ResultPage: React.FC = () => {
   const [deepseekAnalysis, setDeepseekAnalysis] = useState<DeepSeekAnalysis | null>(null);
   const [hasPurchased, setHasPurchased] = useState(false);
   const [isCheckingPurchase, setIsCheckingPurchase] = useState(true);
+  const [deepseekEnabled, setDeepseekEnabled] = useState(false);
 
   useEffect(() => {
     if (!testId || !personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores) {
@@ -42,8 +44,19 @@ const ResultPage: React.FC = () => {
     }
 
     generateReport();
+    checkDeepSeekStatus();
     checkPurchaseStatus();
   }, []);
+
+  const checkDeepSeekStatus = async () => {
+    try {
+      const enabled = await adminApi.getDeepSeekEnabled();
+      setDeepseekEnabled(enabled);
+    } catch (error) {
+      console.error('Error checking DeepSeek status:', error);
+      setDeepseekEnabled(false);
+    }
+  };
 
   const checkPurchaseStatus = async () => {
     if (!testId) return;
@@ -370,7 +383,7 @@ const ResultPage: React.FC = () => {
           </Card>
 
           {/* DeepSeek AI Analysis Section */}
-          {!isCheckingPurchase && (
+          {deepseekEnabled && !isCheckingPurchase && (
             <div className="print:hidden">
               {deepseekAnalysis ? (
                 <DeepSeekAnalysisCard analysis={deepseekAnalysis} />
