@@ -8,29 +8,29 @@ export const userApi = {
     try {
       console.log('[upsertUser] 开始处理邮箱:', email);
       
-      // 使用 RPC 函数创建或获取用户
-      // 这个方法绕过了 PostgREST 表缓存问题
-      console.log('[upsertUser] 调用 RPC 函数 upsert_user...');
-      const { data, error } = await supabase.rpc('upsert_user', {
-        p_email: email
+      // 使用 Edge Function 创建或获取用户
+      // Edge Function 完全绕过 PostgREST 缓存问题
+      console.log('[upsertUser] 调用 Edge Function upsert-user...');
+      const { data, error } = await supabase.functions.invoke('upsert-user', {
+        body: { email }
       });
       
-      console.log('[upsertUser] RPC 调用结果:', { data, error });
+      console.log('[upsertUser] Edge Function 调用结果:', { data, error });
       
       if (error) {
-        console.error('[upsertUser] RPC 调用失败:', error);
+        console.error('[upsertUser] Edge Function 调用失败:', error);
         console.error('[upsertUser] 错误详情:', JSON.stringify(error, null, 2));
         return null;
       }
       
-      if (!data) {
-        console.error('[upsertUser] RPC 返回空数据');
+      if (!data || !data.data) {
+        console.error('[upsertUser] Edge Function 返回空数据');
         return null;
       }
       
-      // RPC 函数返回 JSON 对象，直接使用
-      console.log('[upsertUser] 用户创建/获取成功:', data);
-      return data as User;
+      // Edge Function 返回 { data: User } 格式
+      console.log('[upsertUser] 用户创建/获取成功:', data.data);
+      return data.data as User;
     } catch (error) {
       console.error('[upsertUser] 异常:', error);
       console.error('[upsertUser] 异常详情:', JSON.stringify(error, null, 2));
