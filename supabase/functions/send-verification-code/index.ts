@@ -4,12 +4,17 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   try {
@@ -17,7 +22,7 @@ Deno.serve(async (req: Request) => {
 
     if (!email || !email.includes('@')) {
       return new Response(
-        JSON.stringify({ error: '请输入有效的邮箱地址' }),
+        JSON.stringify({ error: 'Please enter a valid email address' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -46,7 +51,7 @@ Deno.serve(async (req: Request) => {
     if (insertError) {
       console.error('Failed to store verification code:', insertError);
       return new Response(
-        JSON.stringify({ error: '验证码存储失败' }),
+        JSON.stringify({ error: 'Failed to store verification code' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -57,7 +62,7 @@ Deno.serve(async (req: Request) => {
     if (!resendApiKey) {
       console.error('RESEND_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: '邮件服务未配置' }),
+        JSON.stringify({ error: 'Email service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -71,14 +76,14 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         from: 'noreply@yourdomain.com',
         to: email,
-        subject: '您的登录验证码',
+        subject: 'Your Login Verification Code',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>登录验证码</h2>
-            <p>您的验证码是：</p>
+            <h2>Login Verification Code</h2>
+            <p>Your verification code is:</p>
             <h1 style="color: #1DB954; font-size: 32px; letter-spacing: 5px;">${code}</h1>
-            <p>此验证码将在 5 分钟后过期。</p>
-            <p>如果这不是您的操作，请忽略此邮件。</p>
+            <p>This code will expire in 5 minutes.</p>
+            <p>If you did not request this code, please ignore this email.</p>
           </div>
         `,
       }),
@@ -88,7 +93,7 @@ Deno.serve(async (req: Request) => {
       const errorText = await emailResponse.text();
       console.error('Failed to send email:', errorText);
       return new Response(
-        JSON.stringify({ error: '邮件发送失败' }),
+        JSON.stringify({ error: 'Failed to send email' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -96,7 +101,7 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: '验证码已发送到您的邮箱'
+        message: 'Verification code sent to your email'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -105,7 +110,7 @@ Deno.serve(async (req: Request) => {
     console.error('Exception in send-verification-code:', error);
     return new Response(
       JSON.stringify({ 
-        error: '服务器错误',
+        error: 'Server error',
         details: error.message 
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

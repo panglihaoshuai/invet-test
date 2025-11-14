@@ -5,37 +5,38 @@ import { verify } from "jsr:@zaubrik/djwt@3";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   try {
-    // Get token from Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
-        JSON.stringify({ error: '未提供认证令牌' }),
+        JSON.stringify({ error: 'No authentication token provided' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const token = authHeader.substring(7);
 
-    // Get JWT secret
     const jwtSecret = Deno.env.get('JWT_SECRET');
     if (!jwtSecret) {
       console.error('JWT_SECRET not configured');
       return new Response(
-        JSON.stringify({ error: 'JWT配置错误' }),
+        JSON.stringify({ error: 'JWT configuration error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create JWT key
     const key = await crypto.subtle.importKey(
       "raw",
       new TextEncoder().encode(jwtSecret),
@@ -44,18 +45,16 @@ Deno.serve(async (req: Request) => {
       ["sign", "verify"]
     );
 
-    // Verify JWT
     let payload;
     try {
       payload = await verify(token, key);
     } catch (error) {
       return new Response(
-        JSON.stringify({ error: '令牌无效或已过期' }),
+        JSON.stringify({ error: 'Invalid or expired token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get user from database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -68,7 +67,7 @@ Deno.serve(async (req: Request) => {
 
     if (userError || !user) {
       return new Response(
-        JSON.stringify({ error: '用户不存在' }),
+        JSON.stringify({ error: 'User not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -89,7 +88,7 @@ Deno.serve(async (req: Request) => {
     console.error('Exception in verify-token:', error);
     return new Response(
       JSON.stringify({
-        error: '服务器错误',
+        error: 'Server error',
         details: error.message,
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
