@@ -18,25 +18,25 @@ const HomePage: React.FC = () => {
 
   // 检查是否为管理员
   useEffect(() => {
-    const checkAdmin = async () => {
-      if (isAuthenticated && user) {
-        console.log('🔍 检查管理员权限...');
-        console.log('👤 当前用户:', user);
-        console.log('📧 邮箱:', user.email);
-        console.log('🎭 角色:', user.role);
-        
-        const adminStatus = await adminApi.isAdmin();
-        console.log('✅ 管理员状态:', adminStatus);
-        setIsAdmin(adminStatus);
-        
-        if (adminStatus) {
-          console.log('🎉 您是管理员！应该能看到管理员后台按钮。');
-        } else {
-          console.log('⚠️ 您不是管理员。如果您应该是管理员，请退出登录后重新登录。');
-        }
+    if (isAuthenticated && user) {
+      console.log('🔍 检查管理员权限...');
+      console.log('👤 当前用户:', user);
+      console.log('📧 邮箱:', user.email);
+      console.log('🎭 角色:', user.role);
+      
+      // 直接从用户对象检查角色，避免额外的 API 调用
+      const adminStatus = user.role === 'admin';
+      console.log('✅ 管理员状态:', adminStatus);
+      setIsAdmin(adminStatus);
+      
+      if (adminStatus) {
+        console.log('🎉 您是管理员！应该能看到管理员后台按钮。');
+      } else {
+        console.log('⚠️ 您不是管理员。');
       }
-    };
-    checkAdmin();
+    } else {
+      setIsAdmin(false);
+    }
   }, [isAuthenticated, user]);
 
   // 开始新测试 - 导航到测试模式选择页面
