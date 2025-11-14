@@ -78,6 +78,15 @@ Deno.serve(async (req: Request) => {
       user = newUser;
     }
 
+    // Fetch user role from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('email', email)
+      .maybeSingle();
+
+    const userRole = profile?.role || 'user';
+
     const jwtSecret = Deno.env.get('JWT_SECRET');
     if (!jwtSecret) {
       console.error('JWT_SECRET not configured');
@@ -111,6 +120,7 @@ Deno.serve(async (req: Request) => {
         user: {
           id: user.id,
           email: user.email,
+          role: userRole,
           created_at: user.created_at,
         },
       }),

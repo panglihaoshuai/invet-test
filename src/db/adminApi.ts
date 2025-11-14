@@ -10,6 +10,10 @@ export const adminApi = {
       const { data: { user } } = await getCurrentUser();
       if (!user) return false;
 
+      // 首先检查用户对象中的 role 字段
+      if (user.role === 'admin') return true;
+
+      // 如果用户对象中没有 role，从 profiles 表查询
       const { data, error } = await supabase
         .from('profiles')
         .select('role')

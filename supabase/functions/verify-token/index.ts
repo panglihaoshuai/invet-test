@@ -72,12 +72,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Fetch user role from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('email', user.email)
+      .maybeSingle();
+
+    const userRole = profile?.role || 'user';
+
     return new Response(
       JSON.stringify({
         valid: true,
         user: {
           id: user.id,
           email: user.email,
+          role: userRole,
           created_at: user.created_at,
         },
       }),
