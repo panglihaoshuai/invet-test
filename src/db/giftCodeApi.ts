@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/utils/auth";
 import { supabase } from './supabase';
 import type { GiftCode, GiftCodeStats, RedeemGiftCodeResult } from '@/types/types';
 
@@ -6,7 +7,7 @@ export const giftCodeApi = {
   // 生成礼品码（管理员）
   async generateGiftCode(maxRedemptions: number = 1, expiresInDays?: number): Promise<GiftCode | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return null;
 
       // 生成随机礼品码
@@ -115,7 +116,7 @@ export const giftCodeApi = {
   // 兑换礼品码（用户）
   async redeemGiftCode(code: string): Promise<RedeemGiftCodeResult> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) {
         return {
           success: false,
@@ -149,7 +150,7 @@ export const giftCodeApi = {
   // 获取用户剩余免费分析次数
   async getUserFreeAnalyses(): Promise<number> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return 0;
 
       const { data, error } = await supabase.rpc('get_user_free_analyses', {
@@ -171,7 +172,7 @@ export const giftCodeApi = {
   // 消耗一次免费分析
   async consumeFreeAnalysis(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return false;
 
       const { data, error } = await supabase.rpc('consume_free_analysis', {
@@ -193,7 +194,7 @@ export const giftCodeApi = {
   // 获取用户的礼品码兑换记录
   async getUserRedemptions(): Promise<any[]> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return [];
 
       const { data, error } = await supabase

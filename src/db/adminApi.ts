@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getCurrentUser } from '@/utils/auth';
 import type { Profile, SystemSetting, TestSubmission, AdminLog, AdminStatistics, UserPricingInfo } from '@/types/types';
 
 // 管理员相关API
@@ -6,7 +7,7 @@ export const adminApi = {
   // 检查当前用户是否为管理员
   async isAdmin(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return false;
 
       const { data, error } = await supabase
@@ -26,7 +27,7 @@ export const adminApi = {
   // 获取当前用户的profile
   async getCurrentProfile(): Promise<Profile | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -250,7 +251,7 @@ export const adminApi = {
       let targetUserId = userId;
       
       if (!targetUserId) {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getCurrentUser();
         if (!user) return 399; // 默认首次价格
         targetUserId = user.id;
       }
@@ -273,7 +274,7 @@ export const adminApi = {
   // 获取当前用户的定价信息
   async getCurrentUserPricingInfo(): Promise<UserPricingInfo | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -373,7 +374,7 @@ export const testSubmissionApi = {
     completed: boolean = false
   ): Promise<string | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return null;
 
       // 获取IP地址和用户代理（从浏览器）

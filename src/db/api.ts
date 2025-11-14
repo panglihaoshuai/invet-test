@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getCurrentSession } from '@/utils/auth';
 import type { User, VerificationCode, TestResult, Report, Order, DeepSeekAnalysis, OrderItem } from '@/types/types';
 
 // 用户相关API
@@ -329,7 +330,7 @@ export const paymentApi = {
   // 创建Stripe支付会话
   async createCheckoutSession(items: OrderItem[], testResultId: string): Promise<{ url: string; sessionId: string; orderId: string } | null> {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getCurrentSession();
       
       const { data, error } = await supabase.functions.invoke('create_stripe_checkout', {
         body: {
@@ -413,7 +414,7 @@ export const deepseekApi = {
   // 生成DeepSeek分析（testData从本地存储传入）
   async generateAnalysis(testResultId: string, orderId: string, testData: any): Promise<DeepSeekAnalysis | null> {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getCurrentSession();
       
       if (!session?.access_token) {
         console.error('User not authenticated');
