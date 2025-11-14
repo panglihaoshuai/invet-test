@@ -20,8 +20,20 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const checkAdmin = async () => {
       if (isAuthenticated && user) {
+        console.log('🔍 检查管理员权限...');
+        console.log('👤 当前用户:', user);
+        console.log('📧 邮箱:', user.email);
+        console.log('🎭 角色:', user.role);
+        
         const adminStatus = await adminApi.isAdmin();
+        console.log('✅ 管理员状态:', adminStatus);
         setIsAdmin(adminStatus);
+        
+        if (adminStatus) {
+          console.log('🎉 您是管理员！应该能看到管理员后台按钮。');
+        } else {
+          console.log('⚠️ 您不是管理员。如果您应该是管理员，请退出登录后重新登录。');
+        }
       }
     };
     checkAdmin();
