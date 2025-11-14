@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,11 +8,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2, TestTube2, Info } from 'lucide-react';
 import TraderProfileCard from '@/components/common/TraderProfileCard';
 import LocalStorageNotice from '@/components/common/LocalStorageNotice';
+import { adminApi } from '@/db/adminApi';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // 检查是否为管理员
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (isAuthenticated && user) {
+        const adminStatus = await adminApi.isAdmin();
+        setIsAdmin(adminStatus);
+      }
+    };
+    checkAdmin();
+  }, [isAuthenticated, user]);
 
   // 开始新测试 - 导航到测试模式选择页面
   const handleStartTest = () => {
@@ -49,6 +62,12 @@ const HomePage: React.FC = () => {
           {isAuthenticated && (
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">{user?.email}</span>
+              {isAdmin && (
+                <Button variant="default" onClick={() => navigate('/admin')}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  管理员后台
+                </Button>
+              )}
               <Button variant="outline" onClick={() => navigate('/games')}>
                 <Gamepad2 className="mr-2 h-4 w-4" />
                 游戏中心
