@@ -20,24 +20,32 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log('🔍 检查管理员权限...');
-      console.log('👤 当前用户:', user);
+      console.log('👤 当前用户完整对象:', JSON.stringify(user, null, 2));
       console.log('📧 邮箱:', user.email);
-      console.log('🎭 角色:', user.role);
+      console.log('🎭 角色原始值:', user.role);
       console.log('🔍 角色类型:', typeof user.role);
-      console.log('🔍 角色值检查:', user.role, '===', 'admin', '?', user.role === 'admin');
+      console.log('🔍 角色是否为字符串:', typeof user.role === 'string');
+      console.log('🔍 角色trim后:', user.role?.trim?.());
+      console.log('🔍 角色小写:', user.role?.toLowerCase?.());
+      console.log('🔍 严格相等检查:', user.role === 'admin');
+      console.log('🔍 宽松相等检查:', user.role == 'admin');
+      console.log('🔍 trim后相等:', user.role?.trim?.() === 'admin');
+      console.log('🔍 小写后相等:', user.role?.toLowerCase?.() === 'admin');
       
       // 直接从用户对象检查角色，避免额外的 API 调用
       const adminStatus = user.role === 'admin';
-      console.log('✅ 管理员状态:', adminStatus);
+      console.log('✅ 最终管理员状态:', adminStatus);
       setIsAdmin(adminStatus);
       
       if (adminStatus) {
         console.log('🎉 您是管理员！应该能看到管理员后台按钮。');
       } else {
         console.log('⚠️ 您不是管理员。');
-        console.log('💡 提示: 如果您应该是管理员，请检查 user.role 的值');
+        console.log('💡 user.role 的值:', user.role);
+        console.log('💡 期望值: "admin"');
       }
     } else {
+      console.log('❌ 未认证或用户对象为空');
       setIsAdmin(false);
     }
   }, [isAuthenticated, user]);
