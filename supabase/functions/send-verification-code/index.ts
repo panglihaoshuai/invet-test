@@ -74,16 +74,16 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'noreply@yourdomain.com',
+        from: 'Acme <onboarding@resend.dev>',
         to: email,
-        subject: 'Your Login Verification Code',
+        subject: '您的登录验证码',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Login Verification Code</h2>
-            <p>Your verification code is:</p>
+            <h2>登录验证码</h2>
+            <p>您的验证码是：</p>
             <h1 style="color: #1DB954; font-size: 32px; letter-spacing: 5px;">${code}</h1>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you did not request this code, please ignore this email.</p>
+            <p>此验证码将在 5 分钟后过期。</p>
+            <p>如果您没有请求此验证码，请忽略此邮件。</p>
           </div>
         `,
       }),
