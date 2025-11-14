@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/db/supabase';
 
 interface User {
   id: string;
@@ -19,20 +18,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 验证 token 并获取用户信息
+  // Verify token and get user info
   const verifyToken = async (token: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('verify-token', {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-token`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': SUPABASE_ANON_KEY,
         },
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Token verification failed');
+      }
+
+      const data = await response.json();
 
       if (data.valid && data.user) {
         setUser(data.user);
@@ -46,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 初始化时检查本地存储的 token
+  // Initialize auth on mount
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('auth_token');
@@ -65,45 +74,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // 发送验证码
+  // Send verification code
   const sendVerificationCode = async (email: string) => {
-    const { data, error } = await supabase.functions.invoke('send-verification-code', {
-      body: { email },
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-verification-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ email }),
     });
 
-    if (error) {
-      throw new Error(error.message || '发送验证码失败');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to send verification code' }));
+      throw new Error(errorData.error || 'Failed to send verification code');
     }
 
+    const data = await response.json();
+    
     if (data.error) {
       throw new Error(data.error);
     }
   };
 
-  // 验证码登录
+  // Verify code and login
   const verifyCodeAndLogin = async (email: string, code: string) => {
-    const { data, error } = await supabase.functions.invoke('verify-code-and-login', {
-      body: { email, code },
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-code-and-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ email, code }),
     });
 
-    if (error) {
-      throw new Error(error.message || '登录失败');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Login failed' }));
+      throw new Error(errorData.error || 'Login failed');
     }
+
+    const data = await response.json();
 
     if (data.error) {
       throw new Error(data.error);
     }
 
     if (data.success && data.token && data.user) {
-      // 保存 token 到本地存储
+      // Save token to localStorage
       localStorage.setItem('auth_token', data.token);
       setUser(data.user);
     } else {
-      throw new Error('登录响应格式错误');
+      throw new Error('Invalid login response format');
     }
   };
 
-  // 登出
+  // Logout
   const logout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
