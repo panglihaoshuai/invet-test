@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/db/supabase';
-import { userApi } from '@/db/api';
 import { adminApi } from '@/db/adminApi';
 import { Loader2, Mail, KeyRound } from 'lucide-react';
 
@@ -18,7 +16,7 @@ const LoginPage: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const { toast } = useToast();
-  const { setUser } = useAuth();
+  const { sendVerificationCode, verifyCodeAndLogin } = useAuth();
   const navigate = useNavigate();
 
   // 验证邮箱格式
@@ -41,18 +39,7 @@ const LoginPage: React.FC = () => {
     setIsSending(true);
 
     try {
-      // 使用 Supabase Auth 发送 OTP（数字验证码）
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: undefined, // 不使用魔法链接
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
+      await sendVerificationCode(email);
 
       toast({
         title: '验证码已发送',
@@ -87,10 +74,10 @@ const LoginPage: React.FC = () => {
 
   // 验证登录
   const handleVerifyCode = async () => {
-    if (code.length < 6 || code.length > 8) {
+    if (code.length !== 6) {
       toast({
         title: '验证码错误',
-        description: '请输入完整的验证码（6-8位数字）',
+        description: '请输入完整的6位验证码',
         variant: 'destructive'
       });
       return;
@@ -99,33 +86,7 @@ const LoginPage: React.FC = () => {
     setIsVerifying(true);
 
     try {
-      // 使用 Supabase Auth 验证 OTP
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: email,
-        token: code,
-        type: 'email'
-      });
-
-      if (error) {
-        console.error('OTP verification error:', error);
-        throw new Error('验证码错误或已过期，请重新获取验证码');
-      }
-
-      if (!data.user) {
-        throw new Error('验证失败：未能获取用户信息');
-      }
-
-      // 创建或获取用户资料
-      console.log('Creating/fetching user profile for:', email);
-      const user = await userApi.upsertUser(email);
-
-      if (!user) {
-        console.error('Failed to create/fetch user profile');
-        throw new Error('用户创建失败：无法在数据库中创建用户记录，请联系管理员');
-      }
-
-      console.log('User profile created/fetched successfully:', user);
-      setUser(user);
+      await verifyCodeAndLogin(email, code);
       
       // 检查是否为管理员
       const isAdmin = await adminApi.isAdmin();
