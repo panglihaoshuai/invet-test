@@ -23,6 +23,8 @@ const HomePage: React.FC = () => {
       console.log('👤 当前用户:', user);
       console.log('📧 邮箱:', user.email);
       console.log('🎭 角色:', user.role);
+      console.log('🔍 角色类型:', typeof user.role);
+      console.log('🔍 角色值检查:', user.role, '===', 'admin', '?', user.role === 'admin');
       
       // 直接从用户对象检查角色，避免额外的 API 调用
       const adminStatus = user.role === 'admin';
@@ -33,6 +35,7 @@ const HomePage: React.FC = () => {
         console.log('🎉 您是管理员！应该能看到管理员后台按钮。');
       } else {
         console.log('⚠️ 您不是管理员。');
+        console.log('💡 提示: 如果您应该是管理员，请检查 user.role 的值');
       }
     } else {
       setIsAdmin(false);
