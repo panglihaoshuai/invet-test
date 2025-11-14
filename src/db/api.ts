@@ -8,32 +8,87 @@ export const userApi = {
     try {
       console.log('[upsertUser] 开始处理邮箱:', email);
       
-      // 使用 Edge Function 创建或获取用户
-      // Edge Function 完全绕过 PostgREST 缓存问题
-      console.log('[upsertUser] 调用 Edge Function upsert-user...');
-      const { data, error } = await supabase.functions.invoke('upsert-user', {
-        body: { email }
-      });
+      // 方法 1: 尝试直接访问 users 表
+      console.log('[upsertUser] 尝试直接访问 users 表...');
       
-      console.log('[upsertUser] Edge Function 调用结果:', { data, error });
+      // 首先尝试获取现有用户
+      const { data: existingUser, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
       
-      if (error) {
-        console.error('[upsertUser] Edge Function 调用失败:', error);
-        console.error('[upsertUser] 错误详情:', JSON.stringify(error, null, 2));
+      console.log('[upsertUser] 查询结果:', { existingUser, fetchError });
+      
+      // 如果用户已存在，直接返回
+      if (existingUser) {
+        console.log('[upsertUser] 用户已存在:', existingUser);
+        return existingUser;
+      }
+      
+      // 如果查询出错但不是"未找到"错误，记录错误
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('[upsertUser] 查询用户失败:', fetchError);
+        
+        // 如果是缓存问题 (PGRST205)，尝试使用 Edge Function
+        if (fetchError.code === 'PGRST205') {
+          console.log('[upsertUser] 检测到缓存问题，尝试使用 Edge Function...');
+          try {
+            const { data: edgeData, error: edgeError } = await supabase.functions.invoke('upsert-user', {
+              body: { email }
+            });
+            
+            if (!edgeError && edgeData && edgeData.data) {
+              console.log('[upsertUser] Edge Function 成功:', edgeData.data);
+              return edgeData.data as User;
+            }
+            console.error('[upsertUser] Edge Function 失败:', edgeError);
+          } catch (edgeErr) {
+            console.error('[upsertUser] Edge Function 异常:', edgeErr);
+          }
+        }
+        
         return null;
       }
       
-      if (!data || !data.data) {
-        console.error('[upsertUser] Edge Function 返回空数据');
+      // 用户不存在，创建新用户
+      console.log('[upsertUser] 用户不存在，创建新用户...');
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert({ email })
+        .select()
+        .maybeSingle();
+      
+      console.log('[upsertUser] 创建结果:', { newUser, insertError });
+      
+      if (insertError) {
+        console.error('[upsertUser] 创建用户失败:', insertError);
+        
+        // 如果是缓存问题，尝试使用 Edge Function
+        if (insertError.code === 'PGRST205') {
+          console.log('[upsertUser] 检测到缓存问题，尝试使用 Edge Function...');
+          try {
+            const { data: edgeData, error: edgeError } = await supabase.functions.invoke('upsert-user', {
+              body: { email }
+            });
+            
+            if (!edgeError && edgeData && edgeData.data) {
+              console.log('[upsertUser] Edge Function 成功:', edgeData.data);
+              return edgeData.data as User;
+            }
+            console.error('[upsertUser] Edge Function 失败:', edgeError);
+          } catch (edgeErr) {
+            console.error('[upsertUser] Edge Function 异常:', edgeErr);
+          }
+        }
+        
         return null;
       }
       
-      // Edge Function 返回 { data: User } 格式
-      console.log('[upsertUser] 用户创建/获取成功:', data.data);
-      return data.data as User;
+      console.log('[upsertUser] 用户创建成功:', newUser);
+      return newUser;
     } catch (error) {
       console.error('[upsertUser] 异常:', error);
-      console.error('[upsertUser] 异常详情:', JSON.stringify(error, null, 2));
       return null;
     }
   },
