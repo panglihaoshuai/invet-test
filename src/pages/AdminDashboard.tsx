@@ -41,17 +41,26 @@ const AdminDashboard: React.FC = () => {
   const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
-    checkAdminAndLoadData();
-  }, []);
+    if (user) {
+      checkAdminAndLoadData();
+    }
+  }, [user]);
 
   const checkAdminAndLoadData = async () => {
     setLoading(true);
     try {
-      // 检查是否为管理员
-      const adminStatus = await adminApi.isAdmin();
+      // 直接从 AuthContext 的 user 对象检查角色
+      console.log('🔍 AdminDashboard: 检查管理员权限...');
+      console.log('👤 AdminDashboard: 当前用户:', user);
+      console.log('🎭 AdminDashboard: 用户角色:', user?.role);
+      
+      const adminStatus = user?.role === 'admin';
+      console.log('✅ AdminDashboard: 管理员状态:', adminStatus);
+      
       setIsAdmin(adminStatus);
 
       if (!adminStatus) {
+        console.log('❌ AdminDashboard: 权限不足，重定向到首页');
         toast({
           title: '权限不足',
           description: '您没有访问管理员后台的权限',
@@ -61,6 +70,7 @@ const AdminDashboard: React.FC = () => {
         return;
       }
 
+      console.log('✅ AdminDashboard: 权限验证通过，开始加载数据');
       // 加载数据
       await Promise.all([
         loadStatistics(),
