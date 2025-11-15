@@ -78,12 +78,38 @@ Deno.serve(async (req: Request) => {
       user = newUser;
     }
 
-    // Fetch user role from profiles table
-    const { data: profile } = await supabase
+    // Fetch or create user profile
+    let { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('*')
       .eq('email', email)
       .maybeSingle();
+
+    // If profile doesn't exist or has wrong ID, create/update it
+    if (!profile || profile.id !== user.id) {
+      const { data: updatedProfile, error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          role: profile?.role || 'user',
+          created_at: profile?.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        })
+        .select()
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Failed to create/update profile:', profileError);
+        // Continue anyway, use default role
+        profile = { id: user.id, email: user.email, role: 'user' };
+      } else {
+        profile = updatedProfile;
+      }
+    }
 
     const userRole = profile?.role || 'user';
 
