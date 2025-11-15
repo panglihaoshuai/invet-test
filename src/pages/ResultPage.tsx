@@ -9,6 +9,7 @@ import { testResultApi, reportApi, paymentApi, deepseekApi } from '@/db/api';
 import { adminApi } from '@/db/adminApi';
 import {
   matchInvestmentStyle,
+  matchInvestmentStyleV2,
   generatePersonalityAnalysis,
   generateMathFinanceAnalysis,
   generateRiskAnalysis,
@@ -16,6 +17,7 @@ import {
   generateDetailedRecommendations
 } from '@/utils/calculations';
 import type { ReportData, DeepSeekAnalysis } from '@/types/types';
+import type { MatchingResult } from '@/utils/weightedMatching';
 import { Download, Home, Printer, TrendingUp, Brain, Calculator, Shield } from 'lucide-react';
 import PurchaseAnalysisCard from '@/components/analysis/PurchaseAnalysisCard';
 import DeepSeekAnalysisCard from '@/components/analysis/DeepSeekAnalysisCard';
@@ -31,6 +33,8 @@ const ResultPage: React.FC = () => {
   const [hasPurchased, setHasPurchased] = useState(false);
   const [isCheckingPurchase, setIsCheckingPurchase] = useState(true);
   const [deepseekEnabled, setDeepseekEnabled] = useState(false);
+  const [matchingResults, setMatchingResults] = useState<MatchingResult[]>([]);
+  const [transparentReport, setTransparentReport] = useState<string>('');
 
   useEffect(() => {
     if (!testId || !personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores) {
@@ -89,12 +93,16 @@ const ResultPage: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      // 匹配投资风格
-      const { style, distance } = matchInvestmentStyle(
+      // 使用新的加权匹配算法
+      const { bestMatch, allMatches, transparentReport: report } = matchInvestmentStyleV2(
         personalityScores,
         mathFinanceScores.percentage,
         riskPreferenceScores.risk_tolerance
       );
+
+      // 保存匹配结果
+      setMatchingResults(allMatches);
+      setTransparentReport(report);
 
       // 生成分析文本
       const personalityAnalysis = generatePersonalityAnalysis(personalityScores);
@@ -105,35 +113,35 @@ const ResultPage: React.FC = () => {
         riskPreferenceScores.investment_horizon
       );
       const recommendations = generateDetailedRecommendations(
-        style.name,
+        bestMatch.archetype.name,
         personalityScores,
         mathFinanceScores.percentage,
         riskPreferenceScores.risk_tolerance
       );
 
-      const report: ReportData = {
+      const reportData: ReportData = {
         user_email: user.email,
         test_date: new Date().toLocaleDateString('zh-CN'),
         personality_analysis: personalityAnalysis,
         trading_characteristics_analysis: tradingCharacteristicsAnalysis,
         math_finance_analysis: mathFinanceAnalysis,
         risk_analysis: riskAnalysis,
-        recommended_strategy: style.description,
-        investment_style: style.name,
+        recommended_strategy: bestMatch.archetype.description,
+        investment_style: bestMatch.archetype.name,
         detailed_recommendations: recommendations
       };
 
-      setReportData(report);
+      setReportData(reportData);
 
       // 更新数据库
       if (testId) {
         await testResultApi.updateTestResult(testId, {
-          investment_style: style.name,
-          euclidean_distance: distance
+          investment_style: bestMatch.archetype.name,
+          euclidean_distance: bestMatch.final_score // 使用最终得分替代欧几里得距离
         });
 
         // 保存报告
-        await reportApi.createReport(user.id, testId, report);
+        await reportApi.createReport(user.id, testId, reportData);
       }
 
       toast({
@@ -231,6 +239,177 @@ const ResultPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Transparent Matching Report */}
+          {matchingResults.length > 0 && (
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Calculator className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl">匹配度透明分析</CardTitle>
+                    <CardDescription>
+                      基于加权距离算法的科学匹配评估
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Best Match Details */}
+                  <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                    <h4 className="font-bold text-lg mb-3">🎯 最佳匹配：{matchingResults[0].archetype.name}</h4>
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <div className="text-sm text-muted-foreground">匹配度得分</div>
+                        <div className="text-2xl font-bold text-primary">{matchingResults[0].final_score.toFixed(1)}</div>
+                        <div className="text-xs text-muted-foreground">{matchingResults[0].match_level}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">推荐交易频率</div>
+                        <div className="text-sm font-medium">{matchingResults[0].archetype.trading_frequency}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">推荐持仓周期</div>
+                        <div className="text-sm font-medium">{matchingResults[0].archetype.holding_period}</div>
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <div className="text-sm text-muted-foreground mb-1">推荐交易风格</div>
+                      <div className="text-sm font-medium">{matchingResults[0].archetype.trading_style}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground whitespace-pre-line">
+                      {matchingResults[0].explanation}
+                    </div>
+                  </div>
+
+                  {/* Trait Scores Table */}
+                  <div>
+                    <h4 className="font-bold mb-3">📊 特征评分详情</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-3">特征</th>
+                            <th className="text-center py-2 px-3">您的值</th>
+                            <th className="text-center py-2 px-3">理想区间</th>
+                            <th className="text-center py-2 px-3">得分</th>
+                            <th className="text-center py-2 px-3">权重</th>
+                            <th className="text-center py-2 px-3">加权得分</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {matchingResults[0].trait_scores.map((trait, index) => (
+                            <tr key={index} className="border-b">
+                              <td className="py-2 px-3 font-medium">{trait.trait}</td>
+                              <td className="text-center py-2 px-3">{trait.user_value}</td>
+                              <td className="text-center py-2 px-3">
+                                [{trait.ideal_range[0]}, {trait.ideal_range[1]}]
+                              </td>
+                              <td className="text-center py-2 px-3">
+                                <span className={trait.score >= 80 ? 'text-green-600 font-medium' : trait.score >= 60 ? 'text-yellow-600' : 'text-red-600'}>
+                                  {trait.score.toFixed(0)}
+                                </span>
+                              </td>
+                              <td className="text-center py-2 px-3">{trait.weight.toFixed(1)}x</td>
+                              <td className="text-center py-2 px-3 font-medium">{trait.weighted_score.toFixed(1)}</td>
+                            </tr>
+                          ))}
+                          <tr className="border-b">
+                            <td className="py-2 px-3 font-medium">数学能力</td>
+                            <td className="text-center py-2 px-3">{mathFinanceScores?.percentage}%</td>
+                            <td className="text-center py-2 px-3">
+                              [{matchingResults[0].archetype.math_range[0]}, {matchingResults[0].archetype.math_range[1]}]
+                            </td>
+                            <td className="text-center py-2 px-3">
+                              <span className={matchingResults[0].math_score >= 80 ? 'text-green-600 font-medium' : matchingResults[0].math_score >= 60 ? 'text-yellow-600' : 'text-red-600'}>
+                                {matchingResults[0].math_score.toFixed(0)}
+                              </span>
+                            </td>
+                            <td className="text-center py-2 px-3">15%</td>
+                            <td className="text-center py-2 px-3 font-medium">{(matchingResults[0].math_score * 0.15).toFixed(1)}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 font-medium">风险偏好</td>
+                            <td className="text-center py-2 px-3">{riskPreferenceScores?.risk_tolerance}</td>
+                            <td className="text-center py-2 px-3">
+                              [{matchingResults[0].archetype.risk_range[0]}, {matchingResults[0].archetype.risk_range[1]}]
+                            </td>
+                            <td className="text-center py-2 px-3">
+                              <span className={matchingResults[0].risk_score >= 80 ? 'text-green-600 font-medium' : matchingResults[0].risk_score >= 60 ? 'text-yellow-600' : 'text-red-600'}>
+                                {matchingResults[0].risk_score.toFixed(0)}
+                              </span>
+                            </td>
+                            <td className="text-center py-2 px-3">15%</td>
+                            <td className="text-center py-2 px-3 font-medium">{(matchingResults[0].risk_score * 0.15).toFixed(1)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* All Matches Ranking */}
+                  <div>
+                    <h4 className="font-bold mb-3">🏆 所有投资风格匹配度排名</h4>
+                    <div className="space-y-2">
+                      {matchingResults.map((result, index) => (
+                        <div
+                          key={index}
+                          className={`p-3 rounded-lg border ${
+                            index === 0
+                              ? 'bg-primary/10 border-primary/30'
+                              : 'bg-muted/30 border-muted'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`text-lg font-bold ${index === 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                                #{index + 1}
+                              </div>
+                              <div>
+                                <div className="font-medium">{result.archetype.name}</div>
+                                <div className="text-xs text-muted-foreground">{result.archetype.description}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-xl font-bold ${index === 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                                {result.final_score.toFixed(1)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">{result.match_level}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Algorithm Explanation */}
+                  <div className="p-4 rounded-lg bg-muted/30 border border-muted">
+                    <h4 className="font-bold mb-2">📖 算法说明</h4>
+                    <div className="text-sm text-muted-foreground space-y-2">
+                      <p>
+                        <strong>加权距离算法：</strong>不同特征具有不同的重要性权重。神经质（2.5x）和尽责性（2.0x）权重最高，
+                        因为它们对投资行为影响最大。
+                      </p>
+                      <p>
+                        <strong>区间评分法：</strong>每个投资原型对每个特征都定义了理想区间。您的特征值在区间内得满分（100分），
+                        偏离区间则按距离扣分（每偏离1分扣10分）。
+                      </p>
+                      <p>
+                        <strong>惩罚机制：</strong>对于严重不匹配的情况（如保守型投资者反应极快），系统会应用惩罚系数，
+                        大幅降低匹配度得分，确保推荐的合理性。
+                      </p>
+                      <p>
+                        <strong>综合评分：</strong>最终得分 = 人格特征得分（70%）+ 数学能力得分（15%）+ 风险偏好得分（15%）- 约束惩罚。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Personality Analysis */}
           <Card>

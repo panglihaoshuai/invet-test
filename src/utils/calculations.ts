@@ -1,4 +1,5 @@
 import type { PersonalityScores, InvestmentStyleVector, TradingCharacteristics } from '@/types/types';
+import { matchAllArchetypes, generateTransparentReport, type MatchingResult } from './weightedMatching';
 
 // 投资风格向量定义
 export const investmentStyles: InvestmentStyleVector[] = [
@@ -105,7 +106,7 @@ export function calculateEuclideanDistance(
   return Math.sqrt(sumOfSquares);
 }
 
-// 匹配最佳投资风格
+// 匹配最佳投资风格（保留旧版本用于兼容）
 export function matchInvestmentStyle(
   personalityScores: PersonalityScores,
   mathScore: number,
@@ -135,6 +136,26 @@ export function matchInvestmentStyle(
   }
 
   return { style: bestMatch, distance: minDistance };
+}
+
+// 新版本：使用加权匹配算法
+export function matchInvestmentStyleV2(
+  personalityScores: PersonalityScores,
+  mathScore: number,
+  riskLevel: number
+): {
+  bestMatch: MatchingResult;
+  allMatches: MatchingResult[];
+  transparentReport: string;
+} {
+  const results = matchAllArchetypes(personalityScores, mathScore, riskLevel);
+  const report = generateTransparentReport(results);
+  
+  return {
+    bestMatch: report.best_match,
+    allMatches: report.all_matches,
+    transparentReport: report.summary
+  };
 }
 
 // 生成人格分析文本
