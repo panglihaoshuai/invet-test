@@ -160,12 +160,12 @@ export const adminApi = {
       });
 
       if (error) {
-        console.error('❌ togglePaymentSystem: RPC 错误', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('❌ togglePaymentSystem: RPC 错误');
+        console.error('错误消息:', error.message);
+        console.error('错误详情:', error.details);
+        console.error('错误提示:', error.hint);
+        console.error('错误代码:', error.code);
+        console.error('完整错误对象:', JSON.stringify(error, null, 2));
         return false;
       }
       
