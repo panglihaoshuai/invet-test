@@ -4,7 +4,98 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, TrendingUp, TrendingDown, Pause, ChevronLeft, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Zap, TrendingUp, TrendingDown, Pause, ChevronLeft, RotateCcw, AlertTriangle, Activity } from 'lucide-react';
+
+// 技术指标类型
+interface TechnicalIndicators {
+  rsi: number;           // 0-100
+  macd: number;          // -10 to 10
+  maPosition: 'above' | 'below' | 'at'; // 价格相对均线位置
+  volume: 'high' | 'normal' | 'low';
+  bollingerBand: 'upper' | 'middle' | 'lower';
+  trend: 'up' | 'down' | 'sideways';
+}
+
+// 生成随机技术指标
+const generateRandomIndicators = (): TechnicalIndicators => {
+  // 10%概率生成一致信号，90%概率生成混合信号
+  const aligned = Math.random() < 0.1;
+  
+  if (aligned) {
+    // 一致信号：所有指标指向同一方向
+    const direction = Math.random() < 0.5 ? 'bullish' : 'bearish';
+    
+    if (direction === 'bullish') {
+      return {
+        rsi: 20 + Math.random() * 20,  // 20-40 (超卖)
+        macd: 2 + Math.random() * 5,   // 2-7 (正值)
+        maPosition: 'above',
+        volume: Math.random() < 0.7 ? 'high' : 'normal',
+        bollingerBand: 'lower',
+        trend: 'up'
+      };
+    } else {
+      return {
+        rsi: 70 + Math.random() * 20,  // 70-90 (超买)
+        macd: -7 + Math.random() * 5,  // -7 to -2 (负值)
+        maPosition: 'below',
+        volume: Math.random() < 0.7 ? 'high' : 'normal',
+        bollingerBand: 'upper',
+        trend: 'down'
+      };
+    }
+  } else {
+    // 混合信号：指标方向不一致
+    return {
+      rsi: Math.random() * 100,
+      macd: (Math.random() - 0.5) * 20,
+      maPosition: ['above', 'below', 'at'][Math.floor(Math.random() * 3)] as any,
+      volume: ['high', 'normal', 'low'][Math.floor(Math.random() * 3)] as any,
+      bollingerBand: ['upper', 'middle', 'lower'][Math.floor(Math.random() * 3)] as any,
+      trend: ['up', 'down', 'sideways'][Math.floor(Math.random() * 3)] as any
+    };
+  }
+};
+
+// 计算指标得分
+const calculateIndicatorScore = (indicators: TechnicalIndicators): number => {
+  let score = 0;
+  
+  // RSI: <30 超卖(+1), 30-70 中性(0), >70 超买(-1)
+  if (indicators.rsi < 30) score += 1;
+  else if (indicators.rsi > 70) score -= 1;
+  
+  // MACD: 正值看涨(+1), 负值看跌(-1)
+  if (indicators.macd > 2) score += 1;
+  else if (indicators.macd < -2) score -= 1;
+  
+  // MA位置: 价格在均线上方(+1), 下方(-1)
+  if (indicators.maPosition === 'above') score += 1;
+  else if (indicators.maPosition === 'below') score -= 1;
+  
+  // 成交量: 高成交量配合趋势(+1/-1)
+  if (indicators.volume === 'high') {
+    if (indicators.trend === 'up') score += 1;
+    else if (indicators.trend === 'down') score -= 1;
+  }
+  
+  // 布林带: 价格在下轨(+1), 上轨(-1)
+  if (indicators.bollingerBand === 'lower') score += 1;
+  else if (indicators.bollingerBand === 'upper') score -= 1;
+  
+  // 趋势: 上升(+1), 下降(-1)
+  if (indicators.trend === 'up') score += 1;
+  else if (indicators.trend === 'down') score -= 1;
+  
+  return score;
+};
+
+// 根据得分确定正确动作
+const getCorrectAction = (score: number): 'buy' | 'sell' | 'hold' => {
+  if (score >= 3) return 'buy';      // 强烈看涨
+  if (score <= -3) return 'sell';    // 强烈看跌
+  return 'hold';                      // 信号不明确，等待
+};
 
 const QuickReactionGamePage = () => {
   const navigate = useNavigate();
@@ -14,9 +105,10 @@ const QuickReactionGamePage = () => {
   const [currentRound, setCurrentRound] = useState(1);
   const [totalRounds] = useState(10);
   const [coins, setCoins] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(10);
-  const [signal, setSignal] = useState<'buy' | 'sell' | 'hold'>('hold');
+  const [timeLeft, setTimeLeft] = useState(15); // 增加到15秒，因为需要分析多个指标
+  const [indicators, setIndicators] = useState<TechnicalIndicators | null>(null);
   const [correctAction, setCorrectAction] = useState<'buy' | 'sell' | 'hold'>('hold');
+  const [indicatorScore, setIndicatorScore] = useState(0);
   const [consecutiveLosses, setConsecutiveLosses] = useState(0);
   const [showRevengeTrade, setShowRevengeTrade] = useState(false);
   const [cooldownActive, setCooldownActive] = useState(false);
@@ -24,7 +116,8 @@ const QuickReactionGamePage = () => {
   const [cooldownCount, setCooldownCount] = useState(0);
   const [roundHistory, setRoundHistory] = useState<{
     round: number;
-    signal: string;
+    indicators: TechnicalIndicators;
+    score: number;
     action: string;
     correct: boolean;
     responseTime: number;
@@ -63,18 +156,21 @@ const QuickReactionGamePage = () => {
   };
 
   const startNewRound = () => {
-    const signals: ('buy' | 'sell' | 'hold')[] = ['buy', 'sell', 'hold'];
-    const newSignal = signals[Math.floor(Math.random() * signals.length)];
-    const newCorrectAction = newSignal; // 简化：信号即为正确动作
+    const newIndicators = generateRandomIndicators();
+    const score = calculateIndicatorScore(newIndicators);
+    const action = getCorrectAction(score);
     
-    setSignal(newSignal);
-    setCorrectAction(newCorrectAction);
-    setTimeLeft(10);
+    setIndicators(newIndicators);
+    setIndicatorScore(score);
+    setCorrectAction(action);
+    setTimeLeft(15);
     setShowRevengeTrade(false);
     startTimeRef.current = Date.now();
   };
 
   const handleAction = (action: 'buy' | 'sell' | 'hold') => {
+    if (!indicators) return;
+    
     const responseTime = (Date.now() - startTimeRef.current) / 1000;
     const correct = action === correctAction;
     
@@ -95,7 +191,7 @@ const QuickReactionGamePage = () => {
       
       toast({
         title: '❌ 错误',
-        description: `-5 金币`,
+        description: `-5 金币 | 正确动作: ${correctAction === 'buy' ? '买入' : correctAction === 'sell' ? '卖出' : '等待'}`,
         variant: 'destructive'
       });
     }
@@ -103,7 +199,8 @@ const QuickReactionGamePage = () => {
     setResponseTimes(prev => [...prev, responseTime]);
     setRoundHistory(prev => [...prev, {
       round: currentRound,
-      signal: signal,
+      indicators,
+      score: indicatorScore,
       action,
       correct,
       responseTime,
@@ -131,15 +228,18 @@ const QuickReactionGamePage = () => {
   };
 
   const handleTimeout = () => {
+    if (!indicators) return;
+    
     setCoins(prev => prev - 5);
     setConsecutiveLosses(prev => prev + 1);
     
     setRoundHistory(prev => [...prev, {
       round: currentRound,
-      signal: signal,
+      indicators,
+      score: indicatorScore,
       action: 'timeout',
       correct: false,
-      responseTime: 10,
+      responseTime: 15,
       coins: -5
     }]);
     
@@ -269,7 +369,7 @@ const QuickReactionGamePage = () => {
         <Card className="max-w-2xl w-full">
           <CardHeader>
             <CardTitle className="text-2xl gradient-text">⚡ 快速反应游戏</CardTitle>
-            <CardDescription>测试您的决策速度与情绪控制能力</CardDescription>
+            <CardDescription>测试您的决策速度、分析能力与情绪控制</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
@@ -277,26 +377,46 @@ const QuickReactionGamePage = () => {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">1.</span>
-                  <span>共 <strong className="text-primary">10 轮</strong>，每轮 <strong className="text-primary">10 秒</strong>内响应信号</span>
+                  <span>共 <strong className="text-primary">10 轮</strong>，每轮 <strong className="text-primary">15 秒</strong>内分析技术指标并做出决策</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">2.</span>
-                  <span>正确决策 <strong className="text-green-500">+10 金币</strong>，错误或超时 <strong className="text-red-500">-5 金币</strong></span>
+                  <span>系统显示 <strong className="text-primary">6 个技术指标</strong>（RSI、MACD、均线、成交量、布林带、趋势），需要综合判断</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">3.</span>
-                  <span>连续亏损后出现<strong className="text-destructive">"复仇交易"</strong>诱导（高杠杆选项）</span>
+                  <span><strong className="text-yellow-500">90%的情况</strong>指标方向不一致，需要权衡判断；<strong className="text-yellow-500">仅10%</strong>会出现一致信号</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">4.</span>
+                  <span>正确决策 <strong className="text-green-500">+10 金币</strong>，错误或超时 <strong className="text-red-500">-5 金币</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-1">5.</span>
+                  <span>连续亏损后出现<strong className="text-destructive">"复仇交易"</strong>诱导（高杠杆选项）</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-1">6.</span>
                   <span>可暂停"冷静期"（5秒）避免冲动决策</span>
                 </li>
               </ul>
 
+              <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <h4 className="font-semibold mb-2 text-sm">📊 指标解读提示：</h4>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li>• <strong>RSI &lt; 30</strong>：超卖（看涨） | <strong>RSI &gt; 70</strong>：超买（看跌）</li>
+                  <li>• <strong>MACD 正值</strong>：看涨 | <strong>MACD 负值</strong>：看跌</li>
+                  <li>• <strong>价格在均线上方</strong>：看涨 | <strong>下方</strong>：看跌</li>
+                  <li>• <strong>高成交量配合趋势</strong>：增强信号强度</li>
+                  <li>• <strong>价格在布林带下轨</strong>：看涨 | <strong>上轨</strong>：看跌</li>
+                  <li>• <strong>上升趋势</strong>：看涨 | <strong>下降趋势</strong>：看跌</li>
+                </ul>
+              </div>
+
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm">
-                  <strong>测试目的：</strong>评估情绪控制和速度偏好。快决策者适合超短线；慢而稳者偏长线。
-                  连续亏损后行为反映情绪失控（tilt）。
+                  <strong>测试目的：</strong>评估分析能力、决策速度和情绪控制。真实交易中指标经常冲突，
+                  需要综合判断。信号不明确时应选择"等待"，体现纪律性。
                 </p>
               </div>
             </div>
@@ -493,24 +613,158 @@ const QuickReactionGamePage = () => {
           </Card>
         </div>
 
-        {/* Signal */}
-        <Card className="border-primary border-2">
-          <CardHeader>
-            <CardTitle className="text-center text-2xl">
-              <Zap className="inline h-8 w-8 mr-2 text-yellow-500" />
-              信号
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center p-8 bg-primary/10 rounded-lg">
-              <p className="text-5xl font-bold text-primary mb-4">
-                {signal === 'buy' && '📈 买入'}
-                {signal === 'sell' && '📉 卖出'}
-                {signal === 'hold' && '⏸️ 持有'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Technical Indicators */}
+        {indicators && (
+          <Card className="border-primary border-2">
+            <CardHeader>
+              <CardTitle className="text-center text-xl flex items-center justify-center gap-2">
+                <Activity className="h-6 w-6 text-primary" />
+                技术指标分析
+              </CardTitle>
+              <CardDescription className="text-center">
+                综合分析以下指标，做出交易决策
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* RSI */}
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">RSI (相对强弱指标)</span>
+                    <span className={`text-lg font-bold ${
+                      indicators.rsi < 30 ? 'text-green-500' : 
+                      indicators.rsi > 70 ? 'text-red-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {indicators.rsi.toFixed(1)}
+                    </span>
+                  </div>
+                  <Progress value={indicators.rsi} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {indicators.rsi < 30 && '超卖区域 - 可能反弹'}
+                    {indicators.rsi >= 30 && indicators.rsi <= 70 && '中性区域'}
+                    {indicators.rsi > 70 && '超买区域 - 可能回调'}
+                  </p>
+                </div>
+
+                {/* MACD */}
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">MACD (趋势指标)</span>
+                    <span className={`text-lg font-bold ${
+                      indicators.macd > 2 ? 'text-green-500' : 
+                      indicators.macd < -2 ? 'text-red-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {indicators.macd.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-background rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${indicators.macd > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                      style={{ width: `${Math.min(100, Math.abs(indicators.macd) * 10)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {indicators.macd > 2 && '正值 - 上涨动能'}
+                    {indicators.macd >= -2 && indicators.macd <= 2 && '接近零轴 - 动能弱'}
+                    {indicators.macd < -2 && '负值 - 下跌动能'}
+                  </p>
+                </div>
+
+                {/* MA Position */}
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">均线位置</span>
+                    <span className={`text-lg font-bold ${
+                      indicators.maPosition === 'above' ? 'text-green-500' : 
+                      indicators.maPosition === 'below' ? 'text-red-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {indicators.maPosition === 'above' && '上方 ↑'}
+                      {indicators.maPosition === 'below' && '下方 ↓'}
+                      {indicators.maPosition === 'at' && '接近 →'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {indicators.maPosition === 'above' && '价格在均线上方 - 多头'}
+                    {indicators.maPosition === 'below' && '价格在均线下方 - 空头'}
+                    {indicators.maPosition === 'at' && '价格接近均线 - 观望'}
+                  </p>
+                </div>
+
+                {/* Volume */}
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">成交量</span>
+                    <span className={`text-lg font-bold ${
+                      indicators.volume === 'high' ? 'text-yellow-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {indicators.volume === 'high' && '放量 📊'}
+                      {indicators.volume === 'normal' && '正常 📊'}
+                      {indicators.volume === 'low' && '缩量 📊'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {indicators.volume === 'high' && '成交活跃 - 信号增强'}
+                    {indicators.volume === 'normal' && '成交正常'}
+                    {indicators.volume === 'low' && '成交清淡 - 观望为主'}
+                  </p>
+                </div>
+
+                {/* Bollinger Band */}
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">布林带位置</span>
+                    <span className={`text-lg font-bold ${
+                      indicators.bollingerBand === 'lower' ? 'text-green-500' : 
+                      indicators.bollingerBand === 'upper' ? 'text-red-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {indicators.bollingerBand === 'upper' && '上轨'}
+                      {indicators.bollingerBand === 'middle' && '中轨'}
+                      {indicators.bollingerBand === 'lower' && '下轨'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {indicators.bollingerBand === 'lower' && '触及下轨 - 可能反弹'}
+                    {indicators.bollingerBand === 'middle' && '中轨附近 - 中性'}
+                    {indicators.bollingerBand === 'upper' && '触及上轨 - 可能回调'}
+                  </p>
+                </div>
+
+                {/* Trend */}
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">趋势方向</span>
+                    <span className={`text-lg font-bold ${
+                      indicators.trend === 'up' ? 'text-green-500' : 
+                      indicators.trend === 'down' ? 'text-red-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {indicators.trend === 'up' && '上升 📈'}
+                      {indicators.trend === 'down' && '下降 📉'}
+                      {indicators.trend === 'sideways' && '横盘 ↔️'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {indicators.trend === 'up' && '上升趋势 - 看涨'}
+                    {indicators.trend === 'down' && '下降趋势 - 看跌'}
+                    {indicators.trend === 'sideways' && '震荡整理 - 观望'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Overall Signal Hint */}
+              <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-sm text-center text-muted-foreground">
+                  💡 <strong>提示：</strong>综合分析所有指标，多数看涨时买入，多数看跌时卖出，信号不明确时等待
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Actions */}
         {!showRevengeTrade && (
@@ -544,7 +798,7 @@ const QuickReactionGamePage = () => {
                   className="h-20 text-lg"
                 >
                   <Pause className="mr-2 h-6 w-6" />
-                  持有
+                  等待
                 </Button>
               </div>
             </CardContent>
