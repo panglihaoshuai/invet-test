@@ -108,7 +108,7 @@ const HistoricalResultPage = () => {
                 </h2>
                 {testResult.euclidean_distance !== null && (
                   <p className="text-muted-foreground">
-                    匹配度: {(100 - testResult.euclidean_distance * 10).toFixed(0)}%
+                    匹配度: {testResult.euclidean_distance.toFixed(0)}%
                   </p>
                 )}
               </div>

@@ -357,7 +357,7 @@ const TestHistoryPage = () => {
                       <div>
                         <p className="text-muted-foreground mb-1">匹配度</p>
                         <p className="text-lg font-medium">
-                          {(100 - test.euclidean_distance * 10).toFixed(0)}%
+                          {test.euclidean_distance.toFixed(0)}%
                         </p>
                       </div>
                     )}
