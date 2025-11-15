@@ -37,25 +37,11 @@
 - **[快速开始.md](./快速开始.md)** - 5分钟快速测试指南 ⭐ 推荐新手
 - **[部署测试完整指南.md](./部署测试完整指南.md)** - 完整的部署和测试文档
 - **[系统流程图.md](./系统流程图.md)** - 系统架构和流程图
-- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - 详细的功能测试指南
-- **[SECURITY_GUIDE.md](./SECURITY_GUIDE.md)** - 安全配置指南
 
-### 管理员文档
+### 专项文档
 - **[docs/ADMIN_SETUP.md](./docs/ADMIN_SETUP.md)** - 管理员账号设置指南
 - **[docs/GIFT_CODE_PAYMENT_TESTING.md](./docs/GIFT_CODE_PAYMENT_TESTING.md)** - 礼品码和付费功能测试
-
-### 功能文档
-- **[docs/features/DEEPSEEK_INTEGRATION.md](./docs/features/DEEPSEEK_INTEGRATION.md)** - DeepSeek AI 集成
-- **[docs/features/GIFT_CODE_SYSTEM_GUIDE.md](./docs/features/GIFT_CODE_SYSTEM_GUIDE.md)** - 礼品码系统
-- **[docs/features/PAYMENT_FLOW.md](./docs/features/PAYMENT_FLOW.md)** - 支付流程
-
-### 配置文档
-- **[🔧配置RESEND_API_KEY.md](./🔧配置RESEND_API_KEY.md)** - 邮件服务配置
-
-### 技术文档
-- **[docs/prd.md](./docs/prd.md)** - 产品需求文档
-- **[docs/SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md)** - 系统架构概览
-- **[docs/fixes/](./docs/fixes/)** - 历史修复记录
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - 详细的功能测试指南
 
 ---
 
