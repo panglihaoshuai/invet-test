@@ -88,8 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to send verification code' }));
-      throw new Error(errorData.error || 'Failed to send verification code');
+      const errorData = await response.json().catch(() => ({ error: '发送验证码失败' }));
+      throw new Error(errorData.error || '发送验证码失败');
     }
 
     const data = await response.json();
@@ -97,6 +97,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.error) {
       throw new Error(data.error);
     }
+
+    // For development mode, show the verification code in console
+    if (data.devCode) {
+      console.log('='.repeat(50));
+      console.log('开发模式：验证码未通过邮件发送');
+      console.log(`邮箱：${email}`);
+      console.log(`验证码：${data.devCode}`);
+      console.log('='.repeat(50));
+      // Also show in alert for easier access
+      alert(`开发模式：验证码为 ${data.devCode}\n\n请在登录页面输入此验证码。\n\n注意：生产环境中验证码将通过邮件发送。`);
+    }
+
+    return data;
   };
 
   // Verify code and login

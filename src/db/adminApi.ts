@@ -146,7 +146,16 @@ export const adminApi = {
   // 切换支付系统
   async togglePaymentSystem(enabled: boolean): Promise<boolean> {
     try {
-      const { data, error } = await supabase.rpc('toggle_payment_system', { enabled });
+      const { data: { user } } = await getCurrentUser();
+      if (!user) {
+        console.error('No user found');
+        return false;
+      }
+
+      const { data, error } = await supabase.rpc('toggle_payment_system', { 
+        enabled,
+        user_id: user.id 
+      });
 
       if (error) {
         console.error('Error toggling payment system:', error);
