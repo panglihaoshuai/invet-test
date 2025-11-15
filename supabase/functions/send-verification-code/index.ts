@@ -59,16 +59,32 @@ Deno.serve(async (req: Request) => {
     // Send email using Resend API
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
+    // Check if this is the admin email that should receive real emails
+    const isAdminEmail = email.toLowerCase() === '1062250152@qq.com';
+    
+    // For non-admin emails, always use development mode
+    if (!isAdminEmail) {
+      console.log(`Development mode: Email not sent to ${email}`);
+      console.log(`Verification code for ${email}: ${code}`);
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: '验证码已生成（开发模式）',
+          devCode: code // Development mode - show code
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // For admin email, try to send real email
     if (!resendApiKey) {
       console.error('RESEND_API_KEY not configured');
-      // Still return success since code is stored in database
-      // In production, this should be a hard error
       console.log('Development mode: Verification code stored but email not sent');
       console.log(`Verification code for ${email}: ${code}`);
       return new Response(
         JSON.stringify({ 
           success: true,
-          message: 'Verification code generated (email service not configured)',
+          message: '验证码已生成（邮件服务未配置）',
           devCode: code // Only for development
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -99,32 +115,25 @@ Deno.serve(async (req: Request) => {
 
     if (!emailResponse.ok) {
       const errorText = await emailResponse.text();
-      console.error('Failed to send email:', errorText);
+      console.error('Failed to send email to admin:', errorText);
       
-      // Check if it's a domain verification issue
-      if (errorText.includes('domain') || errorText.includes('verify')) {
-        console.log(`Development mode: Email not sent due to domain verification`);
-        console.log(`Verification code for ${email}: ${code}`);
-        return new Response(
-          JSON.stringify({ 
-            success: true,
-            message: 'Verification code generated (email domain not verified)',
-            devCode: code // Only for development
-          }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
+      // Even if email fails, return success with devCode for admin
+      console.log(`Fallback to development mode for admin`);
+      console.log(`Verification code for ${email}: ${code}`);
       return new Response(
-        JSON.stringify({ error: 'Failed to send email' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: true,
+          message: '验证码已生成（邮件发送失败，请查看弹窗）',
+          devCode: code // Fallback for admin
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Verification code sent to your email'
+        message: '验证码已发送到您的邮箱'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

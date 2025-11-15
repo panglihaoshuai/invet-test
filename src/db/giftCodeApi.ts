@@ -8,17 +8,23 @@ export const giftCodeApi = {
   async generateGiftCode(maxRedemptions: number = 1, expiresInDays?: number): Promise<GiftCode | null> {
     try {
       const { data: { user } } = await getCurrentUser();
-      if (!user) return null;
+      if (!user) {
+        console.error('❌ generateGiftCode: 未找到用户');
+        return null;
+      }
+
+      console.log('🎁 generateGiftCode: 开始生成', { user_id: user.id, maxRedemptions, expiresInDays });
 
       // 生成随机礼品码
       const { data: codeData, error: codeError } = await supabase.rpc('generate_gift_code');
       
       if (codeError || !codeData) {
-        console.error('Error generating code:', codeError);
+        console.error('❌ generateGiftCode: RPC 生成码失败', codeError);
         return null;
       }
 
       const code = codeData as string;
+      console.log('✅ generateGiftCode: 生成随机码', code);
 
       // 计算过期时间
       let expiresAt = null;
@@ -27,6 +33,14 @@ export const giftCodeApi = {
         expireDate.setDate(expireDate.getDate() + expiresInDays);
         expiresAt = expireDate.toISOString();
       }
+
+      console.log('🎁 generateGiftCode: 插入数据库', {
+        code,
+        max_redemptions: maxRedemptions,
+        free_analyses_count: 15,
+        created_by: user.id,
+        expires_at: expiresAt
+      });
 
       // 插入礼品码
       const { data, error } = await supabase
@@ -42,13 +56,19 @@ export const giftCodeApi = {
         .maybeSingle();
 
       if (error) {
-        console.error('Error creating gift code:', error);
+        console.error('❌ generateGiftCode: 插入失败', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return null;
       }
 
+      console.log('✅ generateGiftCode: 成功', data);
       return data;
     } catch (error) {
-      console.error('Error generating gift code:', error);
+      console.error('❌ generateGiftCode: 异常', error);
       return null;
     }
   },

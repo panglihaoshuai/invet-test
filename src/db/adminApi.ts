@@ -148,9 +148,11 @@ export const adminApi = {
     try {
       const { data: { user } } = await getCurrentUser();
       if (!user) {
-        console.error('No user found');
+        console.error('❌ togglePaymentSystem: 未找到用户');
         return false;
       }
+
+      console.log('🔧 togglePaymentSystem: 调用 RPC', { enabled, user_id: user.id });
 
       const { data, error } = await supabase.rpc('toggle_payment_system', { 
         enabled,
@@ -158,12 +160,19 @@ export const adminApi = {
       });
 
       if (error) {
-        console.error('Error toggling payment system:', error);
+        console.error('❌ togglePaymentSystem: RPC 错误', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return false;
       }
+      
+      console.log('✅ togglePaymentSystem: 成功', data);
       return data?.success === true;
     } catch (error) {
-      console.error('Error toggling payment system:', error);
+      console.error('❌ togglePaymentSystem: 异常', error);
       return false;
     }
   },
