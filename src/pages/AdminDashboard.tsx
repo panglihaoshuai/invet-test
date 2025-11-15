@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminApi, testSubmissionApi } from '@/db/adminApi';
 import GiftCodeManager from '@/components/admin/GiftCodeManager';
+import DeepSeekConfig from '@/components/admin/DeepSeekConfig';
 import type { AdminStatistics, TestSubmission, AdminLog, Profile } from '@/types/types';
 import {
   BarChart3,
@@ -344,6 +345,7 @@ const AdminDashboard: React.FC = () => {
             <TabsTrigger value="tests">测试记录</TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
             <TabsTrigger value="giftcodes">礼品码管理</TabsTrigger>
+            <TabsTrigger value="deepseek">DeepSeek 配置</TabsTrigger>
             <TabsTrigger value="logs">审计日志</TabsTrigger>
           </TabsList>
 
@@ -472,6 +474,11 @@ const AdminDashboard: React.FC = () => {
           {/* Gift Code Management */}
           <TabsContent value="giftcodes" className="space-y-4">
             <GiftCodeManager />
+          </TabsContent>
+
+          {/* DeepSeek Configuration */}
+          <TabsContent value="deepseek" className="space-y-4">
+            <DeepSeekConfig />
           </TabsContent>
 
           {/* Admin Logs */}

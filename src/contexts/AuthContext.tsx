@@ -123,8 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.success && data.token && data.user) {
-      // Save token to localStorage
+      // Save token and user to localStorage
       localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
       setUser(data.user);
     } else {
       throw new Error('Invalid login response format');
@@ -134,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout
   const logout = () => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
     localStorage.removeItem('user');
     localStorage.removeItem('currentTestId');
     setUser(null);

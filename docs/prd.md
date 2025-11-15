@@ -1,6 +1,5 @@
-# 人格特质投资策略评估系统需求文档（安全增强版 + 一键部署版）
-
-## 1. 项目概述
+# 人格特质投资策略评估系统需求文档（安全增强版 + 一键部署版+ 管理功能修复版）
+\n## 1. 项目概述
 
 ### 1.1 系统名称
 人格特质投资策略评估系统
@@ -61,52 +60,82 @@
   - 礼品码激活用户数量
   - 礼品码剩余次数分布统计
   - 礼品码使用频率和转化率分析
-
-#### 2.2.3 系统控制面板
+\n#### 2.2.3 系统控制面板（功能修复版）
 - **支付系统开关**：
-  - 一键开启/关闭AI解读付费服务
+  - **一键开启/关闭AI解读付费服务**（修复：确保开关状态能正确保存和生效）
+  - **实时状态同步**：开关状态变更后立即同步到前端和支付接口
+  - **状态持久化**：开关状态保存到数据库，服务重启后自动恢复
+  - **权限验证**：仅管理员可操作支付系统开关
   - 价格调整功能（支持动态定价策略）
   - 促销活动配置（折扣码、限时优惠）
-  - 支付渠道开关（独立控制支付宝/微信）\n\n- **系统功能开关**：
+  - 支付渠道开关（独立控制支付宝/微信）
+
+- **系统功能开关**：
   - 新用户注册开关\n  - 游戏模块开关（可单独控制各个游戏）
   - 邮件发送功能开关
-  - 维护模式开关
-  - **礼品码功能开关**：一键开启/关闭礼品码验证功能
-
-- **礼品码管理系统**：
-  - **礼品码生成器**：\n    - 支持批量生成礼品码（1-100个）
-    - 礼品码长度设置（1-10位）
-    - 随机字符组合（数字+字母，可选大小写）
-    - 生成时间和管理员记录
+  - 维护模式开关\n  - **礼品码功能开关**：一键开启/关闭礼品码验证功能
+\n- **礼品码管理系统（功能修复版）**：\n  - **礼品码生成器**（修复：解决无法生成礼品码的问题）：
+    - **批量生成功能**：支持批量生成礼品码（1-100个）
+    - **生成参数配置**：\n      - 礼品码长度设置（1-10位）
+      - 字符组合选择（纯数字/数字+字母/数字+大小写字母）
+      - 礼品码前缀设置（可选，如'GIFT-'）
+    - **唯一性验证**：生成时自动检查礼品码唯一性，避免重复\n    - **生成记录**：记录生成时间、生成数量和管理员信息
+    - **即时反馈**：生成成功后立即显示礼品码列表，支持复制和导出
+    - **错误处理**：生成失败时显示明确的错误提示和解决方案
   - **礼品码列表管理**：
-    - 查看所有生成的礼品码
-    - 礼品码状态（未使用/已激活/已用完）
+    - 查看所有生成的礼品码\n    - 礼品码状态（未使用/已激活/已用完/已禁用）
     - 礼品码使用者信息和激活时间
     - 剩余使用次数实时显示
-    - 支持礼品码搜索和筛选
+    - 支持礼品码搜索和筛选（按状态、创建时间、使用情况）
   - **礼品码控制**：
     - 单个礼品码禁用/启用
-    - 批量礼品码操作
-    - 礼品码有效期设置（可选）
+    - 批量礼品码操作\n    - 礼品码有效期设置（可选）
     - 礼品码使用次数重置功能
+\n#### 2.2.4 DeepSeek API配置管理（新增功能）
+- **API配置界面**：
+  - **API密钥管理**：
+    - API Key输入框（支持显示/隐藏密钥）
+    - API密钥验证功能（测试连接按钮）
+    - 密钥加密存储，确保安全性
+  - **API服务配置**：
+    - API服务地址配置（默认：https://api.deepseek.com/v1）
+    - 模型选择（默认：deepseek-chat，支持自定义）
+    - 请求超时时间设置（默认30秒）
+    - 最大重试次数设置（默认3次）
+  - **提示词模板管理**：
+    - 系统提示词编辑器（支持Markdown格式）
+    - 提示词变量配置（如用户数据占位符）
+    - 提示词预览功能
+    - 多版本提示词管理（支持A/B测试）
+  - **API调用限制**：
+    - 每日调用次数限制设置
+    - 单用户调用频率限制
+    - API费用预警阈值设置
+  - **配置测试功能**：
+    - 一键测试API连接\n    - 测试提示词效果（使用示例数据）
+    - 显示测试结果和响应时间
+    - 错误诊断和解决建议
+  - **配置历史记录**：\n    - 记录所有配置变更历史
+    - 支持配置回滚功能
+    - 显示配置变更时间和操作管理员
 
-#### 2.2.4 用户管理\n- **用户列表**：查看所有注册用户信息
+#### 2.2.5 用户管理\n- **用户列表**：查看所有注册用户信息
 - **用户行为分析**：单个用户的测试历史和支付记录
 - **异常用户标记**：标记可疑账户和恶意行为
 - **用户封禁**：临时或永久封禁违规用户
 - **礼品码用户管理**：查看使用礼品码的用户列表和使用情况
-
-#### 2.2.5 安全监控
+\n#### 2.2.6 安全监控
 - **实时攻击监控**：显示当前遭受的攻击类型和频率
 - **IP黑名单管理**：查看和管理被封禁的IP地址\n- **异常行为告警**：异常登录、批量注册、恶意请求告警
 - **系统性能监控**：CPU、内存、数据库性能实时监控
 
-#### 2.2.6 管理员操作审计
+#### 2.2.7 管理员操作审计
 - **操作日志记录**：\n  - 管理员登录/登出时间
   - 系统设置修改记录（开关状态变更、价格调整等）
   - 用户管理操作（封禁、解封等）
   - 数据查询和导出记录
-  - **礼品码操作记录**：礼品码生成、禁用、重置等操作\n  - IP和地理位置信息\n- **日志查询功能**：支持按时间、操作类型、管理员筛选\n- **安全审计**：定期生成管理员操作报告
+  - **礼品码操作记录**：礼品码生成、禁用、重置等操作\n  - **DeepSeek API配置变更记录**：API密钥更新、提示词修改等
+  - IP和地理位置信息\n- **日志查询功能**：支持按时间、操作类型、管理员筛选\n- **安全审计**：定期生成管理员操作报告
 
 ### 2.3 测试模式选择
 
@@ -119,8 +148,7 @@
 
 #### 2.4.1 人格特质测试（升级版）
 基于Big Five Inventory (BFI)和16Personalities理论框架，融合自我观察与行为分析的综合评估：
-
-**五大人格维度评估：**
+\n**五大人格维度评估：**
 - **开放性评估**：\n  - 喜欢尝试新事物（如投资新策略）的程度
   - 创意想法产生频率和接受度
   - 对新投资工具和市场的探索意愿
@@ -256,8 +284,7 @@
 - **音效系统**：Web Audio API提供游戏音效反馈
 - **数据收集**：实时记录用户游戏行为数据
 - **游戏选择器**：用户可直接选择想要体验的游戏类型
-
-#### 2.5.2 游戏数据分析
+\n#### 2.5.2 游戏数据分析
 - **行为模式识别**：分析用户在游戏中的决策模式
 - **风险偏好量化**：将游戏表现转换为风险偏好分数
 - **情绪稳定性评估**：通过多轮游戏表现评估情绪控制能力
@@ -317,8 +344,8 @@
 - **服务交付**：支付成功后自动调用DeepSeek API生成深度解读\n- **结果展示**：AI解读内容以独立章节形式添加到用户报告中
 - **服务记录**：记录用户AI解读购买历史、定价记录和内容缓存
 
-### 2.8 礼品码系统
-\n#### 2.8.1 礼品码生成与管理
+### 2.8 礼品码系统\n
+#### 2.8.1 礼品码生成与管理
 - **礼品码生成规则**：
   - 长度：1-10位可配置
   - 字符组合：数字+字母（大小写可选）\n  - 随机算法：确保唯一性和随机性
@@ -435,8 +462,7 @@
 - React Hook Form处理表单验证
 - Axios处理HTTP请求
 - Dexie.js 管理IndexedDB本地数据库
-- LocalStorage API处理轻量级数据存储
-- **游戏引擎相关**：
+- LocalStorage API处理轻量级数据存储\n- **游戏引擎相关**：
   - Konva.js 或PixiJS 用于Canvas游戏渲染
   - Framer Motion 提供高级动画效果
   - Howler.js 处理游戏音效
@@ -493,7 +519,7 @@
 采用混合存储策略：
 ```\n[前端本地存储]\n├── LocalStorage: 用户偏好设置、会话信息、游戏选择记录、AI解读缓存、购买次数记录、礼品码状态
 ├── IndexedDB: 测试历史记录、多游戏回放数据、报告缓存、AI解读内容、定价历史、礼品码使用记录
-└── SessionStorage: 当前测试进度、游戏状态、跨游戏数据传递、支付状态\n\n[后端云存储]\n├── MongoDB: 用户账户信息、管理员标识、统计数据、多游戏行为分析、AI解读记录、支付订单、购买次数跟踪、礼品码数据
+└── SessionStorage: 当前测试进度、游戏状态、跨游戏数据传递、支付状态\n\n[后端云存储]\n├── MongoDB: 用户账户信息、管理员标识、统计数据、多游戏行为分析、AI解读记录、支付订单、购买次数跟踪、礼品码数据、DeepSeek API配置
 ├── Redis: 会话缓存、限流计数、实时统计数据、IP黑名单、礼品码缓存
 └── 临时存储: PDF报告生成缓存、DeepSeek API响应缓存
 ```\n
@@ -505,15 +531,15 @@
                     v
 [API网关 + 安全中间件] <--> [后端服务集群]\n                    |                    |
                     v    v
-[认证服务] <--> [测试服务] <--> [支付服务] <--> [AI服务] <--> [定价服务] <--> [礼品码服务]
+[认证服务] <--> [测试服务] <--> [支付服务] <--> [AI服务] <--> [定价服务] <--> [礼品码服务] <--> [配置管理服务]
                     |                    |
                     v                    v
 [数据库集群] <--> [缓存集群] <--> [监控系统] <--> [后台管理]\n                    |
                     v
-[文件存储] <--> [邮件服务] <--> [日志系统]
-```
+[文件存储] <--> [邮件服务] <--> [日志系统]\n```
 
-## 5. 设计风格\n
+## 5. 设计风格
+
 ### 5.1 整体风格
 采用简约现代化设计，受Spotify暗模式启发的黑绿配色方案\n
 ### 5.2 配色方案
@@ -554,23 +580,28 @@
   - 礼品码激活成功采用庆祝动画效果\n  - 礼品码状态采用进度条显示使用情况
   - AI解读页面为礼品码用户显示'免费使用'金色按钮
 - **多游戏界面设计**：
-  - 游戏选择界面采用卡片网格布局，每个游戏卡片有独特的主题色
-  - 气球游戏采用渐变背景，气球随扎击次数变色（绿→黄→橙→红）\n  - 等待收获游戏采用农场/矿场主题，成长进度条和收益显示
+  - 游戏选择界面采用卡片网格布局，每个游戏卡片有独特的主题色\n  - 气球游戏采用渐变背景，气球随扎击次数变色（绿→黄→橙→红）\n  - 等待收获游戏采用农场/矿场主题，成长进度条和收益显示
   - 拍卖竞价游戏采用拍卖行界面风格，实时竞价显示
   - 双门选择游戏采用简洁的门选择界面，切换动画效果
   - 群体羊群游戏采用市场广场风格，群体指标和独立决策提示
   - 快速反应游戏采用交易界面风格，K线图和快速决策按钮
   - 所有游戏统一采用圆角按钮和阴影效果
-  - 游戏进度和得分采用动画数字效果
-- **后台管理界面设计**：
+  - 游戏进度和得分采用动画数字效果\n- **后台管理界面设计**：
   - 采用经典的侧边栏+主内容区布局\n  - **管理员自动识别**：登录后自动检测管理员身份，无需额外认证步骤
   - 数据统计采用卡片式设计，配合图表和数字动画
   - 实时监控采用仪表盘风格，关键指标突出显示
   - 用户管理采用表格+筛选的形式，支持批量操作
-  - 系统控制采用开关按钮，状态变化有明确的视觉反馈
+  - **系统控制采用开关按钮**：状态变化有明确的视觉反馈和确认提示
   - **AI定价统计**：专门的定价分析图表，显示不同价格档位的转化率
+  - **DeepSeek API配置界面**：\n    - 采用分步配置向导设计，引导管理员完成API配置
+    - API密钥输入框带有显示/隐藏切换按钮
+    - 配置测试按钮采用醒目的绿色，测试结果实时显示
+    - 提示词编辑器采用代码编辑器风格，支持语法高亮
+    - 配置历史采用时间轴展示，支持一键回滚
   - **礼品码管理界面**：
-    - 礼品码生成器采用向导式设计，步骤清晰\n    - 礼品码列表采用表格设计，支持状态筛选和搜索
+    - **礼品码生成器采用向导式设计**：步骤清晰，参数配置直观
+    - **生成结果即时显示**：生成成功后立即展示礼品码列表，支持批量复制
+    - 礼品码列表采用表格设计，支持状态筛选和搜索
     - 礼品码详情采用卡片式布局，显示使用统计和用户列表
     - 批量操作采用复选框+操作栏设计\n    - 礼品码统计采用图表展示，包含使用趋势和转化分析
 \n### 5.4 排版规范
@@ -604,7 +635,7 @@
 ### 6.2 一键安装脚本
 
 #### 6.2.1 Linux/macOS 自动安装脚本
-创建 `install.sh` 文件：
+创建 install.sh 文件：
 \n```bash
 #!/bin/bash
 
@@ -615,7 +646,7 @@ echo '=== 人格特质投资策略评估系统 一键安装==='
 echo '正在检测系统环境...'
 
 # 检测操作系统
-if [[ \"$OSTYPE\" == \"linux-gnu\"* ]]; then
+if [[ \\$OSTYPE\\" == \"linux-gnu\\* ]]; then
     if [ -f /etc/ubuntu-release ] || [ -f /etc/debian_version ]; then
         OS='ubuntu'
         echo '检测到 Ubuntu/Debian 系统'
@@ -623,7 +654,7 @@ if [[ \"$OSTYPE\" == \"linux-gnu\"* ]]; then
         OS='centos'
         echo '检测到 CentOS/RHEL 系统'
     fi
-elif [[ \"$OSTYPE\" == \"darwin\"* ]]; then
+elif [[ \"$OSTYPE\" == \"darwin\\"* ]]; then
     OS='macos'
     echo '检测到 macOS 系统'
 else
@@ -632,25 +663,28 @@ fi\n
 # 安装 Node.js
 install_nodejs() {
     echo '正在安装 Node.js...'
-    if [[ \"$OS\" == 'ubuntu' ]]; then
+    if [[ \"$OS\" =='ubuntu' ]]; then
         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
         sudo apt-get install -y nodejs\n    elif [[ \"$OS\" == 'centos' ]]; then
         curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
         sudo yum install -y nodejs
-    elif [[ \"$OS\" == 'macos' ]]; then\n        if ! command -v brew &> /dev/null; then
+    elif [[ \"$OS\\ == 'macos' ]]; then
+        if ! command -v brew &> /dev/null; then
             echo '正在安装 Homebrew...'
-            /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"\n        fi
+            /bin/bash -c \\"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\\"
+        fi
         brew install node@18
     fi
 }\n
 # 安装 MongoDB
 install_mongodb() {
     echo '正在安装 MongoDB...'
-    if [[ \"$OS\" == 'ubuntu' ]]; then\n        wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
-        echo \"deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+    if [[ \"$OS\\" == 'ubuntu' ]]; then
+        wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+        echo \\"deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse\\" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
         sudo apt-get update
         sudo apt-get install -y mongodb-org
-        sudo systemctl start mongod
+sudo systemctl start mongod
         sudo systemctl enable mongod\n    elif [[ \"$OS\" == 'centos' ]]; then
         cat <<EOF | sudo tee /etc/yum.repos.d/mongodb-org-5.0.repo
 [mongodb-org-5.0]
@@ -662,21 +696,19 @@ gpgkey=https://www.mongodb.org/static/pgp/server-5.0.asc
 EOF
         sudo yum install -y mongodb-org
         sudo systemctl start mongod\n        sudo systemctl enable mongod
-    elif [[ \"$OS\" == 'macos' ]]; then
+    elif [[ \\$OS\" == 'macos' ]]; then
         brew tap mongodb/brew
         brew install mongodb-community@5.0\n        brew services start mongodb/brew/mongodb-community\n    fi
 }
 \n# 安装 Redis\ninstall_redis() {\n    echo '正在安装 Redis...'
-    if [[ \"$OS\" == 'ubuntu' ]]; then
-        sudo apt-get install -y redis-server
+    if [[ \"$OS\" == 'ubuntu' ]]; then\n        sudo apt-get install -y redis-server
         sudo systemctl start redis-server
         sudo systemctl enable redis-server
     elif [[ \"$OS\" == 'centos' ]]; then
         sudo yum install -y redis
         sudo systemctl start redis
         sudo systemctl enable redis
-    elif [[ \"$OS\" == 'macos' ]]; then
-        brew install redis
+    elif [[ \"$OS\" == 'macos' ]]; then\n        brew install redis
         brew services start redis
     fi
 }
@@ -772,12 +804,12 @@ main() {
     echo ''\n    echo '4. 访问系统：'
     echo '   前端: http://localhost:3000'
     echo '   后台: http://localhost:3000/admin'
-    echo '   API: http://localhost:5000/api/v1'
+    echo 'API: http://localhost:5000/api/v1'
     echo ''\n}\n
 main\n```
 
 #### 6.2.2 Windows PowerShell 安装脚本
-创建 `install.ps1` 文件：
+创建 install.ps1 文件：
 
 ```powershell
 # 人格特质投资策略评估系统 - Windows一键安装脚本
@@ -905,7 +937,7 @@ SMTP_USER=your_email@qq.com\nSMTP_PASS=your_email_password
 FROM_EMAIL=your_email@qq.com
 FROM_NAME=人格特质投资策略评估系统
 
-# DeepSeek AI 配置
+# DeepSeek AI 配置（可在管理后台界面配置，此处为默认值）
 DEEPSEEK_API_KEY=your_deepseek_api_key\nDEEPSEEK_API_URL=https://api.deepseek.com/v1
 DEEPSEEK_MODEL=deepseek-chat
 
@@ -1001,7 +1033,7 @@ check_services() {
     # 检查MongoDB
     if ! pgrep mongod > /dev/null; then
         echo '启动 MongoDB...'
-        if [[ \"$OSTYPE\" == \"darwin\"* ]]; then
+        if [[ \\$OSTYPE\\" == \"darwin\\* ]]; then
             brew services start mongodb/brew/mongodb-community
         else
             sudo systemctl start mongod
@@ -1011,10 +1043,11 @@ check_services() {
     # 检查Redis
     if ! pgrep redis > /dev/null; then
         echo '启动 Redis...'
-        if [[ \"$OSTYPE\" == \"darwin\"* ]]; then
-            brew services start redis
-        else\n            sudo systemctl start redis\n        fi
-    fi\n}\n
+        if [[ \\$OSTYPE\" == \\"darwin\"* ]]; then
+            brew services start redis\n        else
+            sudo systemctl start redis
+        fi\n    fi
+}\n
 # 初始化数据库（如果需要）
 init_db() {
     echo '检查数据库初始化状态...'
@@ -1037,7 +1070,7 @@ start_backend() {
     fi
     
     # 启动后端（开发模式）
-    if [ \"$1\" ='dev' ]; then
+    if [ \\"$1\" ='dev' ]; then
         npm run dev &
     else
         npm start &\n    fi
@@ -1102,7 +1135,7 @@ echo '查看日志：./logs.sh'
 }
 
 # 信号处理
-trap 'echo \"正在停止服务...\"; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit' INT TERM\n
+trap 'echo \\"正在停止服务...\"; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit' INT TERM\n
 # 主启动流程
 main() {
     check_config
@@ -1110,12 +1143,13 @@ main() {
     start_backend $1
     start_frontend $1
     wait_for_services
-    show_info\n    \n    # 保持脚本运行
+    show_info
+    \n    # 保持脚本运行
     wait
 }
 
 # 检查参数
-if [ \"$1\" = '--help' ] || [ \"$1\" = '-h' ]; then
+if [ \\"$1\" = '--help' ] || [ \"$1\" = '-h' ]; then
     echo '用法: ./start.sh [dev|prod]'
     echo '  dev:开发模式（热重载）'
     echo '  prod: 生产模式（默认）'
@@ -1278,8 +1312,7 @@ if ($args[0] -eq '--help' -or $args[0] -eq '-h') {
 }
 
 Main $args[0]
-```
-
+```\n
 ### 6.5 数据库初始化脚本
 
 #### 6.5.1 数据库初始化(backend/scripts/init-db.js)
@@ -1356,6 +1389,15 @@ const createIndexes = async () => {\n    console.log('创建数据库索引...')
             lockoutDuration: 3600000, // 1 hour
             rateLimitWindow: 900000, // 15 minutes\n            rateLimitMax: 100
         },
+        deepseekConfig: {
+            apiKey: process.env.DEEPSEEK_API_KEY || '',
+            apiUrl: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
+            model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+            timeout: 30000,
+            maxRetries: 3,
+            systemPrompt: '你是一位专业的投资心理分析师，请基于用户的测评数据提供专业、准确的投资建议。',
+            configuredInAdmin: false
+        },
         createdAt: new Date(),
         updatedAt: new Date()
     };
@@ -1373,8 +1415,7 @@ const createIndexes = async () => {\n    console.log('创建数据库索引...')
                 rounds: 5,
                 coinsPerPop: 10,
                 minBurstPoint: 8,
-                maxBurstPoint: 25
-            }
+                maxBurstPoint: 25\n            }
         },
         {
             _id: 'waiting_harvest',
@@ -1527,23 +1568,24 @@ const initializeDatabase = async () => {\n    try {
         console.log('1. 启动服务：npm start 或 npm run dev');
         console.log('2. 访问前端：http://localhost:3000');
         console.log('3. 使用管理员邮箱注册获得管理员权限');
-        console.log('4. 测试礼品码：WELCOME2024 或 TEST123');
+        console.log('4. 在管理后台配置DeepSeek API（如需使用AI解读功能）');
+        console.log('5. 测试礼品码：WELCOME2024 或 TEST123');
         console.log('');
         
 } catch (error) {
         console.error('✗ 数据库初始化失败:', error.message);
-        process.exit(1);
-    } finally {
+        process.exit(1);\n    } finally {
         await mongoose.connection.close();
-    }\n};
-
-// 检查数据库状态
+    }
+};
+\n// 检查数据库状态
 const checkDatabase = async () => {
     try {
         await connectDB();
         \n        const db = mongoose.connection.db;
         const collections = await db.listCollections().toArray();
-        const configExists = collections.some(col => col.name === 'configs');\n        
+        const configExists = collections.some(col => col.name === 'configs');
+        
         if (configExists) {
             const config = await db.collection('configs').findOne({ _id: 'system_config' });
             if (config) {
@@ -1597,727 +1639,16 @@ NC='\\033[0m' # No Color
 
 # 测试结果统计
 TOTAL_TESTS=0
-PASSED_TESTS=0
-FAILED_TESTS=0
+PASSED_TESTS=0\nFAILED_TESTS=0
 
 # 测试函数
 test_api() {
-    local test_name=\"$1\"\n    local url=\"$2\"
-    local method=\"${3:-GET}\"
+    local test_name=\\$1\\"
+    local url=\"$2\"
+    local method=\\"${3:-GET}\"
     local data=\"$4\"
     local expected_status=\"${5:-200}\"
-    \n    TOTAL_TESTS=$((TOTAL_TESTS + 1))\n    echo -n \"测试 $TOTAL_TESTS: $test_name ... \"
     
-    if [ \"$method\" = 'POST' ] && [ -n \"$data\" ]; then
-        response=$(curl -s -w '%{http_code}' -X POST -H'Content-Type: application/json' -d \"$data\" \"$url\")
-    else
-        response=$(curl -s -w '%{http_code}' \"$url\")
-    fi\n    
-    status_code=${response: -3}
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))\n    echo -n \\"测试 $TOTAL_TESTS: $test_name ...\"
     
-    if [ \"$status_code\" = \"$expected_status\" ]; then
-        echo -e \"${GREEN}✓ 通过${NC}\"
-        PASSED_TESTS=$((PASSED_TESTS + 1))\n        return 0
-    else
-        echo -e \"${RED}✗ 失败 (状态码: $status_code)${NC}\"
-        FAILED_TESTS=$((FAILED_TESTS + 1))
-        return 1
-    fi
-}
-
-# 等待服务启动
-wait_for_services() {
-    echo '等待服务启动...'
-    
-    local max_attempts=30
-    local attempt=1
-    
-    while [ $attempt -le $max_attempts ]; do
-        if curl -f \"$BASE_URL/health\" > /dev/null 2>&1; then
-            echo '✓ 后端服务已就绪'
-            break
-        fi
-        
-        echo \"等待后端服务启动... ($attempt/$max_attempts)\"
-        sleep 2
-        attempt=$((attempt + 1))\n    done
-    
-    if [ $attempt -gt $max_attempts ]; then\n        echo '✗ 后端服务启动超时'
-        exit 1
-    fi
-
-    # 等待前端服务\n    attempt=1
-    while [ $attempt -le $max_attempts ]; do
-        if curl -f \"$FRONTEND_URL\" > /dev/null 2>&1; then
-            echo '✓ 前端服务已就绪'
-            break
-        fi
-        \n        echo \"等待前端服务启动... ($attempt/$max_attempts)\"
-        sleep 2
-        attempt=$((attempt + 1))
-    done
-    
-    if [ $attempt -gt $max_attempts ]; then
-        echo '✗ 前端服务启动超时'
-        exit 1
-    fi\n}
-
-# 基础API 测试
-test_basic_apis() {
-    echo ''\n    echo '=== 基础 API 测试 ==='
-    
-    test_api '健康检查' \"$BASE_URL/health\"
-    test_api '获取验证码' \"$BASE_URL/auth/captcha\"
-    test_api '系统配置' \"$BASE_URL/config/public\"
-    test_api '游戏列表' \"$BASE_URL/games/list\"
-}\n
-# 认证功能测试
-test_auth_functions() {
-    echo ''\n    echo '=== 认证功能测试 ==='
-    
-    # 发送验证码测试
-    local captcha_data='{\"email\":\"'$TEST_EMAIL'\",\"captcha\":\"test\"}'
-    test_api '发送验证码' \"$BASE_URL/auth/send-code\" 'POST' \"$captcha_data\" '200'
-    
-    # 验证码登录测试（预期失败）
-    local login_data='{\"email\":\"'$TEST_EMAIL'\",\"code\":\"123456\"}'
-    test_api '验证码登录（无效验证码）' \"$BASE_URL/auth/verify-code\" 'POST' \"$login_data\" '400'
-}\n
-# 礼品码功能测试\ntest_gift_code_functions() {
-    echo ''
-    echo '=== 礼品码功能测试 ==='
-    \n    # 验证礼品码\n    local gift_code_data='{\"code\":\"'$TEST_GIFT_CODE'\"}'
-    test_api '验证礼品码' \"$BASE_URL/giftcode/validate\" 'POST' \"$gift_code_data\"
-    
-    # 激活礼品码（需要认证，预期失败）
-    test_api '激活礼品码（未认证）' \"$BASE_URL/giftcode/activate\" 'POST' \"$gift_code_data\" '401'
-}\n
-# 支付功能测试
-test_payment_functions() {
-    echo ''
-    echo '=== 支付功能测试 ==='
-    \n    # 获取 AI 解读价格（需要认证，预期失败）
-    test_api '获取AI解读价格（未认证）' \"$BASE_URL/ai/deepseek/price\" 'GET' '' '401'
-    
-    # 创建支付订单（需要认证，预期失败）
-    local payment_data='{\"amount\":3.99,\"type\":\"ai_analysis\"}'
-    test_api '创建支付订单（未认证）' \"$BASE_URL/payment/create-order\" 'POST' \"$payment_data\" '401'
-}
-
-# 游戏功能测试
-test_game_functions() {\n    echo ''
-    echo '=== 游戏功能测试 ==='
-    
-    # 提交游戏数据（需要认证，预期失败）
-    local balloon_data='{\"rounds\":[{\"pops\":5,\"coins\":50,\"burst\":false}],\"totalCoins\":50}'
-    test_api '提交气球游戏数据（未认证）' \"$BASE_URL/games/balloon-risk\" 'POST' \"$balloon_data\" '401'
-}\n
-# 管理员功能测试
-test_admin_functions() {\n    echo ''
-    echo '=== 管理员功能测试 ==='
-    
-    # 检查管理员权限（需要认证，预期失败）\n    test_api '检查管理员权限（未认证）' \"$BASE_URL/admin/check-permission\" 'GET' '' '401'
-    
-    # 获取统计数据（需要认证，预期失败）
-    test_api '获取统计数据（未认证）' \"$BASE_URL/admin/dashboard/stats\" 'GET' '' '401'
-    
-    # 生成礼品码（需要认证，预期失败）
-    local generate_data='{\"count\":1,\"length\":8}'
-    test_api '生成礼品码（未认证）' \"$BASE_URL/admin/giftcode/generate\" 'POST' \"$generate_data\" '401'
-}
-
-# 前端页面测试
-test_frontend_pages() {
-    echo ''\n    echo '=== 前端页面测试 ==='
-    
-    test_api '首页' \"$FRONTEND_URL\"
-    test_api '登录页面' \"$FRONTEND_URL/login\"
-    test_api '测试页面' \"$FRONTEND_URL/test\"
-    test_api '管理后台' \"$FRONTEND_URL/admin\"
-}
-\n# 性能测试
-test_performance() {
-    echo ''
-    echo '=== 性能测试 ==='
-    
-    echo -n '测试 API 响应时间 ... '
-    local start_time=$(date +%s%N)
-    curl -s \"$BASE_URL/health\" > /dev/null\n    local end_time=$(date +%s%N)
-    local duration=$(( (end_time - start_time) / 1000000 ))\n    
-    if [ $duration -lt 1000 ]; then
-        echo -e \"${GREEN}✓ 通过 (\"$duration\"ms)${NC}\"
-        PASSED_TESTS=$((PASSED_TESTS + 1))
-    else
-        echo -e \"${RED}✗ 失败 (\"$duration\"ms > 1000ms)${NC}\"
-        FAILED_TESTS=$((FAILED_TESTS + 1))
-    fi\n    TOTAL_TESTS=$((TOTAL_TESTS + 1))\n}
-
-# 安全测试
-test_security() {
-    echo ''\n    echo '=== 安全测试 ==='
-    
-    # SQL 注入测试
-    local sql_injection=\"'; DROP TABLE users; --\"
-    local injection_data='{\"email\":\"'$sql_injection'\",\"code\":\"123456\"}'
-    test_api 'SQL注入防护测试' \"$BASE_URL/auth/verify-code\" 'POST' \"$injection_data\" '400'
-    
-    # XSS 测试
-    local xss_payload='<script>alert(\"xss\")</script>'
-    local xss_data='{\"email\":\"'$xss_payload'\",\"code\":\"123456\"}'
-    test_api 'XSS防护测试' \"$BASE_URL/auth/verify-code\" 'POST' \"$xss_data\" '400'
-    
-    # 频率限制测试
-    echo -n '测试频率限制 ... '
-    local rate_limit_passed=true
-    \n    for i in {1..10}; do
-        response=$(curl -s -w '%{http_code}' \"$BASE_URL/health\")
-        status_code=${response: -3}\n        if [ \"$status_code\" != '200' ]; then
-            rate_limit_passed=false\n            break
-        fi
-    done
-    
-    if [ \"$rate_limit_passed\" = true ]; then
-        echo -e \"${GREEN}✓ 通过${NC}\"
-        PASSED_TESTS=$((PASSED_TESTS + 1))
-    else
-        echo -e \"${RED}✗ 失败${NC}\"
-        FAILED_TESTS=$((FAILED_TESTS + 1))\n    fi
-    TOTAL_TESTS=$((TOTAL_TESTS + 1))\n}
-
-# 数据库连接测试
-test_database_connection() {
-    echo ''\n    echo '=== 数据库连接测试 ==='
-    
-    echo -n '测试 MongoDB 连接 ... '
-    if mongo --eval \"db.runCommand('ping').ok\" > /dev/null 2>&1; then\n        echo -e \"${GREEN}✓ 通过${NC}\"
-        PASSED_TESTS=$((PASSED_TESTS + 1))\n    else
-        echo -e \"${RED}✗ 失败${NC}\"
-        FAILED_TESTS=$((FAILED_TESTS + 1))
-    fi
-    TOTAL_TESTS=$((TOTAL_TESTS + 1))
-    \n    echo -n '测试 Redis 连接 ... '\n    if redis-cli ping > /dev/null 2>&1; then
-        echo -e \"${GREEN}✓ 通过${NC}\"
-        PASSED_TESTS=$((PASSED_TESTS + 1))
-    else
-        echo -e \"${RED}✗ 失败${NC}\"\n        FAILED_TESTS=$((FAILED_TESTS + 1))
-    fi
-    TOTAL_TESTS=$((TOTAL_TESTS + 1))
-}
-
-# 生成测试报告
-generate_report() {
-    echo ''\n    echo '=== 测试报告 ==='
-    echo \"总测试数: $TOTAL_TESTS\"
-    echo -e \"通过: ${GREEN}$PASSED_TESTS${NC}\"
-    echo -e \"失败: ${RED}$FAILED_TESTS${NC}\"
-    \n    local success_rate=$((PASSED_TESTS * 100 / TOTAL_TESTS))
-    echo \"成功率: $success_rate%\"
-    
-    if [ $FAILED_TESTS -eq 0 ]; then
-        echo -e \"${GREEN}🎉 所有测试通过！系统运行正常。${NC}\"
-        return 0
-    else
-        echo -e \"${YELLOW}⚠️  部分测试失败，请检查系统配置。${NC}\"
-        return 1
-    fi\n}
-
-# 主测试流程
-main() {
-    echo '开始系统测试...'
-    echo '测试目标: '$BASE_URL\n    echo '前端地址: '$FRONTEND_URL\n    echo ''\n    
-    wait_for_services
-    test_database_connection
-    test_basic_apis
-    test_auth_functions
-    test_gift_code_functions
-    test_payment_functions
-    test_game_functions
-    test_admin_functions
-    test_frontend_pages
-    test_performance
-    test_security
-    \n    generate_report
-}\n
-# 检查参数
-if [ \"$1\" = '--help' ] || [ \"$1\" = '-h' ]; then
-    echo '用法: ./test.sh [options]'
-    echo '选项:'
-    echo '  --api-only仅测试 API 接口'
-    echo '  --frontend-only    仅测试前端页面'
-    echo '  --security-only    仅测试安全功能'
-    echo '  --performance-only 仅测试性能'
-    echo '  --help, -h         显示帮助信息'
-    exit 0\nfi
-
-# 根据参数执行特定测试
-case \"$1\" in
-    --api-only)
-        wait_for_services
-        test_basic_apis
-        test_auth_functions
-        test_gift_code_functions
-        test_payment_functions
-        test_game_functions
-        test_admin_functions
-        generate_report
-        ;;
-    --frontend-only)
-        wait_for_services
-        test_frontend_pages
-        generate_report
-        ;;
-    --security-only)
-        wait_for_services
-        test_security
-        generate_report
-        ;;
-    --performance-only)
-        wait_for_services
-        test_performance
-        generate_report
-        ;;
-    *)
-        main
-        ;;
-esac
-
-exit $?
-```
-
-### 6.7 日志查看脚本
-
-#### 6.7.1 日志查看脚本 (logs.sh)
-```bash
-#!/bin/bash\n
-# 日志查看脚本
-
-echo '=== 系统日志查看 ==='
-
-# 显示菜单
-show_menu() {
-    echo ''
-    echo '请选择要查看的日志:'
-    echo '1. 后端应用日志'
-    echo '2. 前端构建日志'
-    echo '3. MongoDB 日志'
-    echo '4. Redis 日志'
-    echo '5. 系统错误日志'
-    echo '6. 访问日志'
-    echo '7. 安全日志'
-    echo '8. 支付日志'
-    echo '9. AI 服务日志'
-    echo '10. 实时日志监控'
-    echo '0. 退出'
-    echo ''
-    read -p '请输入选项 (0-10): ' choice
-}\n
-# 查看后端日志
-view_backend_logs() {
-    echo '=== 后端应用日志 ==='
-    if [ -f backend/logs/app.log ]; then\n        tail -n 50 backend/logs/app.log
-    else
-        echo '日志文件不存在: backend/logs/app.log'\n    fi
-}
-\n# 查看前端日志
-view_frontend_logs() {
-    echo '=== 前端构建日志 ==='
-    if [ -f frontend/build.log ]; then
-        tail -n 50 frontend/build.log
-    else
-        echo '日志文件不存在: frontend/build.log'
-    fi
-}
-
-# 查看 MongoDB 日志
-view_mongodb_logs() {
-    echo '=== MongoDB 日志 ==='
-    if [[ \"$OSTYPE\" == \"darwin\"* ]]; then
-        tail -n 50 /usr/local/var/log/mongodb/mongo.log 2>/dev/null || echo 'MongoDB 日志文件不存在'
-    else
-        sudo tail -n 50 /var/log/mongodb/mongod.log 2>/dev/null || echo 'MongoDB 日志文件不存在'
-    fi
-}
-
-# 查看 Redis 日志
-view_redis_logs() {
-    echo '=== Redis 日志 ==='
-    if [[ \"$OSTYPE\" == \"darwin\"* ]]; then\n        tail -n 50 /usr/local/var/log/redis.log 2>/dev/null || echo 'Redis 日志文件不存在'
-    else
-        sudo tail -n 50 /var/log/redis/redis-server.log 2>/dev/null || echo 'Redis 日志文件不存在'
-    fi
-}
-
-# 查看错误日志
-view_error_logs() {
-    echo '=== 系统错误日志 ==='
-    if [ -f backend/logs/error.log ]; then
-        tail -n 50 backend/logs/error.log
-    else
-        echo '错误日志文件不存在: backend/logs/error.log'
-    fi
-}
-
-# 查看访问日志
-view_access_logs() {
-    echo '=== 访问日志 ==='
-    if [ -f backend/logs/access.log ]; then
-        tail -n 50 backend/logs/access.log
-    else
-        echo '访问日志文件不存在: backend/logs/access.log'
-    fi
-}
-
-# 查看安全日志
-view_security_logs() {
-    echo '=== 安全日志 ==='
-    if [ -f backend/logs/security.log ]; then
-        tail -n 50 backend/logs/security.log
-    else
-        echo '安全日志文件不存在: backend/logs/security.log'
-    fi\n}
-
-# 查看支付日志
-view_payment_logs() {
-    echo '=== 支付日志 ==='
-    if [ -f backend/logs/payment.log ]; then
-        tail -n 50 backend/logs/payment.log
-    else
-        echo '支付日志文件不存在: backend/logs/payment.log'
-    fi
-}
-
-# 查看 AI 服务日志
-view_ai_logs() {
-    echo '=== AI 服务日志 ==='
-    if [ -f backend/logs/ai.log ]; then\n        tail -n 50 backend/logs/ai.log\n    else
-        echo 'AI 服务日志文件不存在: backend/logs/ai.log'
-    fi
-}
-
-# 实时日志监控
-view_realtime_logs() {
-    echo '=== 实时日志监控 ==='
-    echo '按Ctrl+C 退出监控'
-    echo ''\n    \n    if [ -f backend/logs/app.log ]; then
-        tail -f backend/logs/app.log
-    else
-        echo '日志文件不存在: backend/logs/app.log'
-    fi
-}
-
-# 主循环
-while true; do\n    show_menu
-    \n    case $choice in
-        1)
-            view_backend_logs
-            ;;
-        2)
-            view_frontend_logs
-            ;;
-        3)
-            view_mongodb_logs
-            ;;
-        4)
-            view_redis_logs
-            ;;
-        5)
-            view_error_logs
-            ;;
-        6)
-            view_access_logs
-            ;;
-        7)
-            view_security_logs
-            ;;
-        8)
-            view_payment_logs
-            ;;
-        9)
-            view_ai_logs
-            ;;
-        10)
-            view_realtime_logs\n            ;;
-        0)\n            echo '退出日志查看'
-            exit 0
-            ;;
-        *)
-            echo '无效选项，请重新选择'
-            ;;
-    esac
-    
-    echo ''
-    read -p '按回车键继续...'
-done
-```
-
-### 6.8 停止服务脚本
-
-#### 6.8.1 停止服务脚本 (stop.sh)
-```bash
-#!/bin/bash
-
-# 停止服务脚本
-
-echo '=== 停止人格特质投资策略评估系统 ==='
-
-# 停止 Node.js 进程
-stop_nodejs() {
-    echo '停止 Node.js 服务...'
-    \n    # 查找并停止后端进程
-    backend_pids=$(pgrep -f 'node.*backend')
-    if [ -n \"$backend_pids\" ]; then
-        echo '停止后端服务...'
-        kill $backend_pids
-        sleep 2
-        \n        # 强制停止如果还在运行
-        backend_pids=$(pgrep -f 'node.*backend')\n        if [ -n \"$backend_pids\" ]; then
-            kill -9 $backend_pids
-        fi
-        echo '✓ 后端服务已停止'
-    else
-        echo '后端服务未运行'
-    fi
-
-    # 查找并停止前端进程
-    frontend_pids=$(pgrep -f 'node.*frontend|react-scripts|serve')
-    if [ -n \"$frontend_pids\" ]; then
-        echo '停止前端服务...'
-        kill $frontend_pids\n        sleep 2
-        
-        # 强制停止如果还在运行\n        frontend_pids=$(pgrep -f 'node.*frontend|react-scripts|serve')
-        if [ -n \"$frontend_pids\" ]; then\n            kill -9 $frontend_pids
-        fi\n        echo '✓ 前端服务已停止'\n    else
-        echo '前端服务未运行'\n    fi
-}
-\n# 停止数据库服务（可选）
-stop_databases() {
-    read -p '是否停止数据库服务？(y/N): ' stop_db
-    \n    if [ \"$stop_db\" = 'y' ] || [ \"$stop_db\" = 'Y' ]; then
-        echo '停止数据库服务...'
-        
-        # 停止 MongoDB
-        if [[ \"$OSTYPE\" == \"darwin\"* ]]; then\n            brew services stop mongodb/brew/mongodb-community
-        else
-            sudo systemctl stop mongod
-        fi
-        echo '✓ MongoDB 已停止'
-        
-        # 停止 Redis
-        if [[ \"$OSTYPE\" == \"darwin\"* ]]; then
-            brew services stop redis\n        else
-            sudo systemctl stop redis\n        fi
-        echo '✓ Redis 已停止'
-    fi
-}
-
-# 清理临时文件
-cleanup_temp_files() {\n    echo '清理临时文件...'
-    
-    # 清理上传文件
-    if [ -d backend/uploads/temp ]; then
-        rm -rf backend/uploads/temp/*
-        echo '✓ 临时上传文件已清理'
-    fi
-    
-    # 清理日志文件（可选）
-    read -p '是否清理日志文件？(y/N): ' clean_logs
-    if [ \"$clean_logs\" = 'y' ] || [ \"$clean_logs\" = 'Y' ]; then
-        if [ -d backend/logs ]; then
-            rm -f backend/logs/*.log
-            echo '✓ 日志文件已清理'
-        fi
-    fi
-}\n
-# 显示系统状态
-show_status() {
-    echo ''\n    echo '=== 系统状态 ==='
-    \n    # 检查 Node.js 进程
-    if pgrep -f 'node' > /dev/null; then
-        echo '⚠️  仍有 Node.js 进程在运行:'
-        pgrep -f 'node' | while read pid; do
-            ps -p $pid -o pid,cmd --no-headers\n        done
-    else\n        echo '✓ 所有 Node.js 进程已停止'
-    fi
-    
-    # 检查端口占用
-    if lsof -i :3000 > /dev/null 2>&1; then
-        echo '⚠️  端口 3000 仍被占用'\n    else
-        echo '✓ 端口 3000 已释放'
-    fi
-    
-    if lsof -i :5000 > /dev/null 2>&1; then
-        echo '⚠️  端口 5000 仍被占用'
-    else
-        echo '✓ 端口 5000 已释放'
-    fi
-}\n
-# 主停止流程
-main() {
-    stop_nodejs
-    stop_databases
-    cleanup_temp_files
-    show_status
-\n    echo ''
-    echo '=== 系统已停止 ==='\n    echo ''\n    echo '重新启动系统：./start.sh'
-    echo '查看日志：./logs.sh'
-    echo ''
-}\n
-main
-```
-
-### 6.9 部署检查清单
-
-#### 6.9.1 部署前检查清单\n```markdown
-# 部署前检查清单
-
-## 环境准备
-- [ ] 操作系统版本符合要求
-- [ ] Node.js v18.0.0+ 已安装
-- [ ] MongoDB v5.0+ 已安装并运行
-- [ ] Redis v6.0+ 已安装并运行
-- [ ] Git 已安装
-- [ ] 网络连接正常
-\n## 第三方服务配置
-- [ ] DeepSeek API 密钥已获取
-- [ ] 支付宝开放平台账号已配置
-- [ ] 微信支付商户号已配置
-- [ ] SMTP邮件服务已配置\n- [ ] CDN 服务已配置（可选）
-
-## 环境变量配置
-- [ ] backend/.env 文件已创建并配置
-- [ ] frontend/.env 文件已创建并配置
-- [ ] 管理员邮箱已设置
-- [ ] JWT 密钥已设置
-- [ ] 数据库连接字符串已配置
-- [ ] 邮件服务配置已填写
-- [ ] DeepSeek API 配置已填写
-- [ ] 支付服务配置已填写
-\n## 安全配置\n- [ ] 生产环境密钥已更换
-- [ ] HTTPS 证书已配置\n- [ ] 防火墙规则已设置
-- [ ] 数据库访问权限已限制
-- [ ] 文件上传目录权限已设置
-\n## 功能测试
-- [ ] 数据库连接测试通过
-- [ ] 邮件发送测试通过
-- [ ] DeepSeek API 调用测试通过
-- [ ] 支付接口测试通过
-- [ ] 礼品码功能测试通过
-- [ ] 游戏功能测试通过
-- [ ] 管理后台功能测试通过\n
-## 性能优化
-- [ ] 数据库索引已创建
-- [ ] 静态资源已压缩
-- [ ] CDN 已配置（生产环境）
-- [ ] 缓存策略已设置
-- [ ] 日志轮转已配置
-\n## 监控告警
-- [ ] 系统监控已配置
-- [ ] 错误告警已设置
-- [ ] 性能监控已启用
-- [ ] 日志收集已配置
-
-## 备份策略
-- [ ] 数据库备份策略已设置
-- [ ] 代码备份已配置
-- [ ] 配置文件备份已保存
-- [ ] 恢复流程已测试
-```
-
-## 7. 使用说明
-
-### 7.1 快速开始
-
-1. **下载并运行安装脚本**：
-   ```bash
-   # Linux/macOS
-   curl -fsSL https://raw.githubusercontent.com/your-repo/personality-investment-system/main/install.sh | bash
-   
-   # 或手动下载
-   wget https://raw.githubusercontent.com/your-repo/personality-investment-system/main/install.sh
-   chmod +x install.sh
-   ./install.sh
-   ```
-
-2. **配置环境变量**：\n   编辑 `backend/.env` 和 `frontend/.env` 文件，填入必要的配置信息\n
-3. **启动系统**：
-   ```bash
-   ./start.sh dev# 开发模式
-   #或
-   ./start.sh# 生产模式
-   ```
-
-4. **运行测试**：
-   ```bash
-   ./test.sh       # 完整测试
-   # 或
-   ./test.sh --api-only  # 仅测试 API\n   ```
-
-### 7.2 管理员操作
-
-1. **注册管理员账号**：使用配置的 `ADMIN_EMAIL` 邮箱注册，系统自动分配管理员权限
-
-2. **访问管理后台**：http://localhost:3000/admin
-
-3. **生成礼品码**：在管理后台的礼品码管理页面批量生成\n
-4. **监控系统状态**：查看实时统计数据和系统监控信息
-
-### 7.3 故障排除
-
-1. **查看日志**：
-   ```bash
-   ./logs.sh  # 交互式日志查看
-   ```
-
-2. **重启服务**：
-   ```bash
-   ./stop.sh   # 停止服务
-   ./start.sh  # 重新启动\n   ```
-
-3. **重置数据库**：
-   ```bash
-   cd backend\n   npm run db:reset  # 重置并重新初始化数据库
-   ```
-
-### 7.4 系统维护
-
-1. **定期备份**：
-   ```bash
-   # 备份数据库
-   mongodump --db personality_investment --out ./backup/$(date +%Y%m%d)
-   
-   # 备份配置文件
-   cp backend/.env ./backup/env_$(date +%Y%m%d).backup
-   ```
-
-2. **更新系统**：
-   ```bash
-   git pull origin main  # 拉取最新代码
-   ./install.sh          # 重新安装依赖
-   ./start.sh            # 重启服务
-   ```
-\n3. **监控性能**：
-   ```bash
-   ./test.sh --performance-only  # 性能测试
-   ```\n
-通过以上一键部署与测试指南，用户可以轻松完成系统的安装、配置、启动和测试，实现真正的傻瓜式部署和运维。\n\n## 8. 参考图片
-
-### 8.1 邮件验证码示例
-![邮件验证码示例](image.png)
-
-### 8.2 登录界面示例
-![登录界面示例](image.png)
-
-### 8.3 验证失败提示
-![验证失败提示](image.png)
-
-### 8.4 验证失败详情
-![验证失败详情](image.png)
-
-### 8.5 数据库管理界面
-![数据库管理界面](image.png)
-
-### 8.6 数据表结构
-![数据表结构](image.png)
-
-### 8.7 认证表结构
-![认证表结构](image.png)
+    if [ \\"$method\" = 'POST' ] && [ -n \"$data\\

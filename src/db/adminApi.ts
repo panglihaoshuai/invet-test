@@ -367,6 +367,99 @@ export const adminApi = {
       console.error('Error updating DeepSeek status:', error);
       return false;
     }
+  },
+
+  // 获取 DeepSeek API 密钥
+  async getDeepSeekApiKey(): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'deepseek_api_key')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error getting DeepSeek API key:', error);
+        return null;
+      }
+
+      return data?.setting_value?.value || null;
+    } catch (error) {
+      console.error('Error getting DeepSeek API key:', error);
+      return null;
+    }
+  },
+
+  // 设置 DeepSeek API 密钥
+  async setDeepSeekApiKey(apiKey: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await getCurrentUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert({
+          setting_key: 'deepseek_api_key',
+          setting_value: { value: apiKey },
+          description: 'DeepSeek API 密钥，用于生成投资策略分析报告',
+          updated_by: user.id,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'setting_key'
+        });
+
+      if (error) {
+        console.error('Error setting DeepSeek API key:', error);
+        return false;
+      }
+
+      // 记录操作
+      await this.logAction('update_deepseek_api_key', 'system_settings', null, { updated: true });
+      return true;
+    } catch (error) {
+      console.error('Error setting DeepSeek API key:', error);
+      return false;
+    }
+  },
+
+  // 测试 DeepSeek API 连接
+  async testDeepSeekApiKey(apiKey: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // 调用 DeepSeek API 进行简单测试
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'user', content: 'Hello' }
+          ],
+          max_tokens: 10
+        })
+      });
+
+      if (response.ok) {
+        return {
+          success: true,
+          message: 'API 密钥有效，连接成功'
+        };
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          message: errorData.error?.message || 'API 密钥无效或连接失败'
+        };
+      }
+    } catch (error) {
+      console.error('Error testing DeepSeek API key:', error);
+      return {
+        success: false,
+        message: '网络错误，无法连接到 DeepSeek API'
+      };
+    }
   }
 };
 
