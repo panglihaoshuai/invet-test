@@ -15,15 +15,48 @@ export const giftCodeApi = {
 
       console.log('🎁 generateGiftCode: 开始生成', { user_id: user.id, maxRedemptions, expiresInDays });
 
-      // 生成随机礼品码
-      const { data: codeData, error: codeError } = await supabase.rpc('generate_gift_code');
-      
-      if (codeError || !codeData) {
-        console.error('❌ generateGiftCode: RPC 生成码失败', codeError);
+      let isAdmin = user.role === 'admin';
+      if (!isAdmin) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+        isAdmin = profile?.role === 'admin';
+      }
+      if (!isAdmin) {
+        console.error('❌ generateGiftCode: 非管理员禁止生成');
         return null;
       }
 
-      const code = codeData as string;
+      // 生成随机礼品码
+      let code: string | null = null;
+      const { data: codeData, error: codeError } = await supabase.rpc('generate_gift_code');
+      if (!codeError && codeData) {
+        code = codeData as string;
+      }
+      if (!code) {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        const gen = (len: number) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        let attempt = 0;
+        while (attempt < 10) {
+          const candidate = gen(8);
+          const { data: existing } = await supabase
+            .from('gift_codes')
+            .select('id')
+            .eq('code', candidate)
+            .maybeSingle();
+          if (!existing) {
+            code = candidate;
+            break;
+          }
+          attempt += 1;
+        }
+        if (!code) {
+          console.error('❌ generateGiftCode: 本地生成码失败');
+          return null;
+        }
+      }
       console.log('✅ generateGiftCode: 生成随机码', code);
 
       // 计算过期时间

@@ -130,13 +130,24 @@ export const adminApi = {
   // 获取支付系统状态
   async getPaymentSystemStatus(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.rpc('get_payment_system_status');
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'payment_enabled')
+        .maybeSingle();
 
       if (error) {
         console.error('Error getting payment system status:', error);
-        return true; // 默认开启
+        return true;
       }
-      return data === true;
+      const v = (data as any)?.setting_value;
+      if (typeof v === 'boolean') return v;
+      if (v && typeof v === 'object' && 'value' in v) {
+        const val = (v as any).value;
+        if (typeof val === 'boolean') return val;
+        if (typeof val === 'string') return val === 'true';
+      }
+      return true;
     } catch (error) {
       console.error('Error getting payment system status:', error);
       return true;
