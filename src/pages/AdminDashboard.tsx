@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { adminApi, testSubmissionApi } from '@/db/adminApi';
+import { adminApi } from '@/db/adminApi';
 import GiftCodeManager from '@/components/admin/GiftCodeManager';
 import DeepSeekConfig from '@/components/admin/DeepSeekConfig';
 import type { AdminStatistics, TestSubmission, AdminLog, Profile } from '@/types/types';
@@ -23,8 +23,7 @@ import {
   ArrowLeft,
   TrendingUp,
   TrendingDown,
-  Calendar,
-  Gift
+  Calendar
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {

@@ -114,7 +114,7 @@ option?: {
 };
 }) => {
 const mapRef = useRef<HTMLDivElement>(null);
-const currentRef = useRef(null);
+const currentRef = useRef<any>(null);
 
 const _options = useMemo(() => {
     return { ...defaultOption, ...option };
@@ -130,13 +130,15 @@ const contextValue = useMemo<MapContextProps>(
 const initMap = useCallback(() => {
     if (!mapRef.current) return;
 
-    let map = currentRef.current;
+    let map: any = currentRef.current;
 
     if (!map) {
-    // Create map instance
-    map = new (window as any).BMapGL.Map(mapRef.current);
-    currentRef.current = map;
+      // Create map instance
+      map = new (window as any).BMapGL.Map(mapRef.current);
+      currentRef.current = map;
     }
+
+    if (!map) return;
 
     // Clear overlays
     map.clearOverlays();

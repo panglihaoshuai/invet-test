@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, TrendingUp, TrendingDown, Pause, ChevronLeft, RotateCcw, AlertTriangle, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Pause, ChevronLeft, RotateCcw, AlertTriangle, Activity } from 'lucide-react';
 
 // 技术指标类型
 interface TechnicalIndicators {
@@ -124,7 +124,7 @@ const QuickReactionGamePage = () => {
     coins: number;
   }[]>([]);
   const [showInstructions, setShowInstructions] = useState(true);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
-import { paymentApi, deepseekApi } from '@/db/api';
+import { paymentApi } from '@/db/api';
 import { useToast } from '@/hooks/use-toast';
 
 const PaymentSuccessPage = () => {
@@ -13,7 +13,7 @@ const PaymentSuccessPage = () => {
   const { toast } = useToast();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [paymentVerified, setPaymentVerified] = useState(false);
+  // removed unused paymentVerified state
   const [paymentData, setPaymentData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +43,6 @@ const PaymentSuccessPage = () => {
       }
 
       setPaymentData(paymentResult);
-      setPaymentVerified(true);
       setIsVerifying(false);
 
       toast({

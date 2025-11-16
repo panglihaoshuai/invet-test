@@ -8,7 +8,6 @@ import { useTest } from '@/contexts/TestContext';
 import { testResultApi, reportApi, paymentApi, deepseekApi } from '@/db/api';
 import { adminApi } from '@/db/adminApi';
 import {
-  matchInvestmentStyle,
   matchInvestmentStyleV2,
   generatePersonalityAnalysis,
   generateMathFinanceAnalysis,
@@ -34,7 +33,6 @@ const ResultPage: React.FC = () => {
   const [isCheckingPurchase, setIsCheckingPurchase] = useState(true);
   const [deepseekEnabled, setDeepseekEnabled] = useState(false);
   const [matchingResults, setMatchingResults] = useState<MatchingResult[]>([]);
-  const [transparentReport, setTransparentReport] = useState<string>('');
 
   useEffect(() => {
     if (!testId || !personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores) {
@@ -94,7 +92,7 @@ const ResultPage: React.FC = () => {
 
     try {
       // 使用新的加权匹配算法
-      const { bestMatch, allMatches, transparentReport: report } = matchInvestmentStyleV2(
+      const { bestMatch, allMatches } = matchInvestmentStyleV2(
         personalityScores,
         mathFinanceScores.percentage,
         riskPreferenceScores.risk_tolerance
@@ -102,7 +100,6 @@ const ResultPage: React.FC = () => {
 
       // 保存匹配结果
       setMatchingResults(allMatches);
-      setTransparentReport(report);
 
       // 生成分析文本
       const personalityAnalysis = generatePersonalityAnalysis(personalityScores);

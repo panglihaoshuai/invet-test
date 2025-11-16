@@ -231,7 +231,7 @@ function determineTradingStyle(scores: any) {
 }
 
 function generateInsights(data: any) {
-  const { riskTolerance, patience, emotionalStability, independence, discipline, profileType } = data;
+  const { riskTolerance, patience, emotionalStability, independence, discipline } = data;
   
   const strengths: string[] = [];
   const weaknesses: string[] = [];

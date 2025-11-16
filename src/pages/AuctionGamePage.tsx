@@ -19,7 +19,6 @@ const AuctionGamePage = () => {
   const [actualValue, setActualValue] = useState(50);
   const [currentBid, setCurrentBid] = useState(0);
   const [userBid, setUserBid] = useState('');
-  const [aiHighestBid, setAiHighestBid] = useState(0);
   const [marketHeat, setMarketHeat] = useState(50);
   const [anchorPrice, setAnchorPrice] = useState(0);
   const [roundHistory, setRoundHistory] = useState<{
@@ -52,7 +51,6 @@ const AuctionGamePage = () => {
     setStartingPrice(newStartPrice);
     setActualValue(newActualValue);
     setCurrentBid(newStartPrice);
-    setAiHighestBid(newStartPrice);
     setMarketHeat(newMarketHeat);
     setAnchorPrice(anchor);
     setUserBid('');
@@ -72,7 +70,6 @@ const AuctionGamePage = () => {
     if (aiWillBid) {
       const aiIncrease = 5 + Math.floor(Math.random() * 15);
       const newAiBid = userBidAmount + aiIncrease;
-      setAiHighestBid(newAiBid);
       setCurrentBid(newAiBid);
       
       toast({

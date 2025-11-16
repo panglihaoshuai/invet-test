@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Brain, Calculator, TrendingUp, FileText, LogOut, Play, Shield, History, Gamepad2, TestTube2, Info } from 'lucide-react';
 import TraderProfileCard from '@/components/common/TraderProfileCard';
 import LocalStorageNotice from '@/components/common/LocalStorageNotice';
-import { adminApi } from '@/db/adminApi';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();

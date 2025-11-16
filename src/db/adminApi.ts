@@ -344,7 +344,7 @@ export const adminApi = {
       }
 
       // 记录操作
-      await this.logAction('update_admin_email', 'system_config', null, { email });
+      await this.logAction('update_admin_email', 'system_config', undefined, { email });
       return true;
     } catch (error) {
       console.error('Error updating admin email:', error);
@@ -390,7 +390,7 @@ export const adminApi = {
       }
 
       // 记录操作
-      await this.logAction('update_deepseek_status', 'system_config', null, { enabled });
+      await this.logAction('update_deepseek_status', 'system_config', undefined, { enabled });
       return true;
     } catch (error) {
       console.error('Error updating DeepSeek status:', error);
@@ -443,7 +443,7 @@ export const adminApi = {
       }
 
       // 记录操作
-      await this.logAction('update_deepseek_api_key', 'system_settings', null, { updated: true });
+      await this.logAction('update_deepseek_api_key', 'system_settings', undefined, { updated: true });
       return true;
     } catch (error) {
       console.error('Error setting DeepSeek API key:', error);
