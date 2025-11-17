@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { deepseekAnalysisStorage } from '@/utils/localStorage';
+import { Sparkles, Download, HardDrive } from 'lucide-react';
 import type { DeepSeekAnalysis } from '@/types/types';
 
 interface DeepSeekAnalysisCardProps {
@@ -11,6 +13,29 @@ const DeepSeekAnalysisCard = ({ analysis }: DeepSeekAnalysisCardProps) => {
   // 将分析内容按段落分割
   const paragraphs = analysis.analysis_content.split('\n\n').filter(p => p.trim());
 
+  const handleSaveLocal = () => {
+    try {
+      deepseekAnalysisStorage.saveAnalysis(analysis);
+      alert('已保存到本地浏览器');
+    } catch (e) {
+      console.error(e);
+      alert('保存失败：请检查浏览器存储空间');
+    }
+  };
+
+  const handleDownload = () => {
+    const content = JSON.stringify(analysis, null, 2);
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deepseek_analysis_${analysis.test_result_id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Card className="border-primary/20">
       <CardHeader>
@@ -19,7 +44,15 @@ const DeepSeekAnalysisCard = ({ analysis }: DeepSeekAnalysisCardProps) => {
             <Sparkles className="h-5 w-5 text-primary" />
             <CardTitle>DeepSeek AI 专业分析</CardTitle>
           </div>
-          <Badge variant="secondary">深度解读</Badge>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleSaveLocal}>
+              <HardDrive className="h-4 w-4 mr-1" /> 保存本地
+            </Button>
+            <Button size="sm" onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-1" /> 下载JSON
+            </Button>
+            <Badge variant="secondary">深度解读</Badge>
+          </div>
         </div>
         <CardDescription>
           基于您的测评数据，由 DeepSeek AI 生成的个性化投资心理分析报告

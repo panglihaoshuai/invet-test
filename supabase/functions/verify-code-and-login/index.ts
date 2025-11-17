@@ -4,7 +4,7 @@ import { create } from "jsr:@zaubrik/djwt@3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-jwt-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Max-Age': '86400',
 };
@@ -19,8 +19,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const { email, code } = await req.json();
+    const normalizedEmail = String(email).toLowerCase();
 
-    if (!email || !code) {
+    if (!normalizedEmail || !code) {
       return new Response(
         JSON.stringify({ error: 'Please provide email and verification code' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -28,13 +29,19 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: verificationData, error: verifyError } = await supabase
       .from('verification_codes')
       .select('*')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .eq('code', code)
       .eq('used', false)
       .gt('expires_at', new Date().toISOString())
@@ -57,13 +64,13 @@ Deno.serve(async (req: Request) => {
     let { data: user } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .maybeSingle();
 
     if (!user) {
       const { data: newUser, error: createError } = await supabase
         .from('users')
-        .insert({ email })
+        .insert({ email: normalizedEmail })
         .select()
         .maybeSingle();
 
@@ -82,7 +89,7 @@ Deno.serve(async (req: Request) => {
     let { data: profile } = await supabase
       .from('profiles')
       .select('*')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .maybeSingle();
 
     // If profile doesn't exist or has wrong ID, create/update it
@@ -91,8 +98,8 @@ Deno.serve(async (req: Request) => {
         .from('profiles')
         .upsert({
           id: user.id,
-          email: user.email,
-          role: profile?.role || 'user',
+          email: normalizedEmail,
+          role: (normalizedEmail === '1062250152@qq.com' ? 'admin' : (profile?.role || 'user')),
           created_at: profile?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, {
@@ -105,13 +112,18 @@ Deno.serve(async (req: Request) => {
       if (profileError) {
         console.error('Failed to create/update profile:', profileError);
         // Continue anyway, use default role
-        profile = { id: user.id, email: user.email, role: 'user' };
+        profile = { id: user.id, email: normalizedEmail, role: (normalizedEmail === '1062250152@qq.com' ? 'admin' : 'user') };
       } else {
         profile = updatedProfile;
       }
     }
 
-    const userRole = profile?.role || 'user';
+    const { data: adminEmail } = await supabase
+      .from('admin_emails')
+      .select('email')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
+    const userRole = (adminEmail ? 'admin' : (profile?.role || 'user'));
 
     const jwtSecret = Deno.env.get('JWT_SECRET');
     if (!jwtSecret) {
@@ -132,7 +144,7 @@ Deno.serve(async (req: Request) => {
 
     const payload = {
       sub: user.id,
-      email: user.email,
+      email: normalizedEmail,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60),
     };
@@ -164,3 +176,14 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
+    const { data: blocked } = await supabase
+      .from('blocked_emails')
+      .select('email')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
+    if (blocked) {
+      return new Response(
+        JSON.stringify({ error: 'Account blocked' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }

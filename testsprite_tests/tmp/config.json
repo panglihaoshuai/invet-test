@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:4173/http://localhost:4173/admin",
+  "loginUser": "1062250152@QQ.COM",
+  "loginPassword": "12345678",
+  "executionArgs": {
+    "projectName": "app-7gjbw3zqrmdd",
+    "projectPath": "D:\\Trae\\rengeceshi\\app-7gjbw3zqrmdd_app_version-7kpudg6kv6rk\\app-7gjbw3zqrmdd",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-P-pVnqRlLBWZHsJPo5c9gRyspUuovhfvXoFbjJ0EWSzdK9CISp9z9j3yYKFELRy_ycrhIFElRiY8zTt63DeyNtms5uWZ5BweMx5al2LpF1s5sbRN4jRXiLgUL630iP8FVDQ"
+    }
+  },
+  "proxy": "http://6fbe4e5a-1b3b-4500-9c6d-0f2958e0b352:DcNnLOe7tr4kvnG6Wh9RJBs6x45jEPVT@tun.testsprite.com:8080"
+}

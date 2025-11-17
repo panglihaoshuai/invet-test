@@ -15,7 +15,7 @@ const Header: React.FC = () => {
               {/* Please replace with your website logo */}
               <img
                 className="h-8 w-auto"
-                src={`https://miaoda-site-img.cdn.bcebos.com/placeholder/code_logo_default.png`}
+                src="/images/logo/logo-icon.svg"
                 alt="Website logo"
               />
               {/* Please replace with your website name */}

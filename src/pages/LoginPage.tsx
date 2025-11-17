@@ -15,8 +15,10 @@ const LoginPage: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [usePassword, setUsePassword] = useState(true);
+  const [isRegister, setIsRegister] = useState(false);
   const { toast } = useToast();
-  const { sendVerificationCode, verifyCodeAndLogin } = useAuth();
+  const { sendVerificationCode, verifyCodeAndLogin, registerPassword, loginPassword } = useAuth();
   const navigate = useNavigate();
 
   // 验证邮箱格式
@@ -72,6 +74,37 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleRegister = async () => {
+    if (!validateEmail(email) || code.length < 6) return;
+    setIsSending(true);
+    try {
+      await registerPassword(email, code);
+      try {
+        await navigator.clipboard.writeText(`邮箱：${email}\n密码：${code}`);
+        toast({ title: '已复制到粘贴板', description: '账号与密码已复制，请妥善保存' });
+      } catch {}
+      setIsRegister(false);
+      toast({ title: '注册成功', description: '请妥善保存密码，系统不提供找回；请使用账号密码登录' });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '注册失败';
+      toast({ title: '注册失败', description: msg, variant: 'destructive' });
+    } finally { setIsSending(false); }
+  };
+
+  const handleLoginPassword = async () => {
+    if (!validateEmail(email) || code.length < 6) return;
+    setIsVerifying(true);
+    try {
+      await loginPassword(email, code);
+      const isAdmin = await adminApi.isAdmin();
+      toast({ title: '登录成功', description: isAdmin ? '欢迎管理员！' : '欢迎使用人格特质投资策略评估系统' });
+      navigate(isAdmin ? '/admin' : '/');
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '登录失败';
+      toast({ title: '登录失败', description: msg, variant: 'destructive' });
+    } finally { setIsVerifying(false); }
+  };
+
   // 验证登录
   const handleVerifyCode = async () => {
     if (code.length !== 6) {
@@ -119,7 +152,7 @@ const LoginPage: React.FC = () => {
             <span className="gradient-text">人格特质投资策略评估系统</span>
           </CardTitle>
           <CardDescription className="text-center">
-            使用邮箱验证码登录，开始您的投资性格评估
+            使用账号密码登录，开始您的投资性格评估
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -135,82 +168,54 @@ const LoginPage: React.FC = () => {
                 placeholder="请输入您的邮箱"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isCodeSent}
+                disabled={false}
                 className="pl-10"
               />
             </div>
           </div>
 
-          {!isCodeSent ? (
-            <Button
-              onClick={handleSendCode}
-              disabled={isSending || !email}
-              className="w-full btn-glow"
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  发送中...
-                </>
-              ) : (
-                '发送验证码'
-              )}
-            </Button>
-          ) : (
+          {
             <>
               <div className="space-y-2">
-                <label htmlFor="code" className="text-sm font-medium">
-                  验证码
+                <label htmlFor="password" className="text-sm font-medium">
+                  {isRegister ? '设置密码' : '密码'}
                 </label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="code"
-                    type="text"
-                    placeholder="请输入验证码"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                    maxLength={8}
-                    className="pl-10"
-                  />
-                </div>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder={isRegister ? '至少6位' : '请输入密码'}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="pl-10"
+                />
               </div>
+              {isRegister && (
+                <p className="text-xs text-muted-foreground">请妥善保存密码，系统暂不提供找回功能</p>
+              )}
+            </div>
 
               <div className="flex gap-2">
-                <Button
-                  onClick={handleVerifyCode}
-                  disabled={isVerifying || code.length < 6}
-                  className="flex-1 btn-glow"
-                >
-                  {isVerifying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      验证中...
-                    </>
-                  ) : (
-                    '验证登录'
-                  )}
-                </Button>
-                <Button
-                  onClick={handleSendCode}
-                  disabled={countdown > 0 || isSending}
-                  variant="outline"
-                >
-                  {countdown > 0 ? `${countdown}秒` : '重新发送'}
+                {isRegister ? (
+                  <Button onClick={handleRegister} disabled={isSending || !email || code.length < 6} className="flex-1 btn-glow">
+                    {isSending ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 注册中...</>) : ('注册')}
+                  </Button>
+                ) : (
+                  <Button onClick={handleLoginPassword} disabled={isVerifying || !email || code.length < 6} className="flex-1 btn-glow">
+                    {isVerifying ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 登录中...</>) : ('登录')}
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => setIsRegister(!isRegister)}>
+                  {isRegister ? '已有账号？去登录' : '没有账号？去注册'}
                 </Button>
               </div>
             </>
-          )}
+          }
 
-          <div className="text-xs text-muted-foreground text-center mt-4">
-            <p>验证码有效期为5分钟，请及时输入</p>
-            <p className="mt-2 text-amber-600">
-              ⚠️ 注意：Supabase 默认邮件服务每小时限制3封邮件
-            </p>
-            <p className="mt-1 text-muted-foreground">
-              建议配置自定义 SMTP 服务以解除限制
-            </p>
-          </div>
+          
+
+          
         </CardContent>
       </Card>
     </div>

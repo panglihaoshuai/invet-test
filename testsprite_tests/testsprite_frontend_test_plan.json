@@ -1,0 +1,418 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration with Email and Auto-Generated Password",
+    "description": "Verify that a user can register using their email, the system generates a one-time password, automatically copies the credentials to clipboard, and prompts the user to save them.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid email address to register."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "System generates a one-time password."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the account email and generated password are automatically copied to clipboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is prompted to save the copied credentials."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a confirmation message indicating successful registration is displayed."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Login with Correct Email and Password",
+    "description": "Ensure users can log in successfully using a valid registered email and correct password.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter a registered email address and the correct password."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that login is successful and user is redirected to the home page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access to the multi-dimensional investment-related psychological and ability evaluation pages."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Login Failure with Incorrect Password",
+    "description": "Validate that login attempts with a valid email but incorrect password fail and proper error is shown.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid registered email and an incorrect password."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login is denied."
+      },
+      {
+        "type": "assertion",
+        "description": "Check that an appropriate error message is displayed indicating invalid credentials."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Administrator Email Management - Add Admin Email",
+    "description": "Verify that an administrator can add another administrator email via the system settings page, and the email is stored in lowercase.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as an administrator."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the system settings admin page."
+      },
+      {
+        "type": "action",
+        "description": "Input a valid email address (mixed case) to be added as an administrator."
+      },
+      {
+        "type": "action",
+        "description": "Submit the new admin email."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new admin email is saved and displayed in lowercase."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the added email gains administrator privileges."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Administrator Email Management - Blacklist Email and Restrict Login",
+    "description": "Validate that blacklisted emails cannot log in to the system and are blocked upon login attempts.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as an administrator."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the admin system settings page."
+      },
+      {
+        "type": "action",
+        "description": "Add an email address to the blacklist in mixed case."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the blacklisted email is saved in lowercase."
+      },
+      {
+        "type": "action",
+        "description": "Log out from the administrator account."
+      },
+      {
+        "type": "action",
+        "description": "Attempt login with the blacklisted email and any password."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login is denied with a clear access restriction message."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Multi-dimensional Investment Psychological and Ability Evaluation Completion and Result Generation",
+    "description": "Confirm that users can complete all available psychological and investment ability tests, and the system correctly records answers and produces accurate investment strategy matches.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a regular user."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Big Five personality test page."
+      },
+      {
+        "type": "action",
+        "description": "Complete all questions in the Big Five personality test."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to risk preference, trading characteristics, and mathematical finance ability tests."
+      },
+      {
+        "type": "action",
+        "description": "Answer all questions in each test."
+      },
+      {
+        "type": "action",
+        "description": "Submit all test results."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that all answers are accurately recorded."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the system generates personalized investment strategies based on Euclidean distance algorithm."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that a basic investment advice report is generated and displayed."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "DeepSeek AI Deep Psychological Analysis Access via Payment",
+    "description": "Test that users can purchase DeepSeek AI service through the payment system and that access is granted after successful payment.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a user."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the AI deep psychological analysis purchase page."
+      },
+      {
+        "type": "action",
+        "description": "Initiate a payment through the order system."
+      },
+      {
+        "type": "action",
+        "description": "Complete the payment process successfully."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify payment status is updated as successful."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user access to AI deep psychological analysis is enabled."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Gift Code System - Redeem Multiple Times and Expiry Enforcement",
+    "description": "Ensure the gift code system correctly supports multiple redemptions within validity period and prohibits use after expiry.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a user."
+      },
+      {
+        "type": "action",
+        "description": "Obtain a valid gift code with multiple use permissions and a defined expiry date in the future."
+      },
+      {
+        "type": "action",
+        "description": "Redeem the gift code for the first time."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify gift code redemption is successful and relevant benefits are applied."
+      },
+      {
+        "type": "action",
+        "description": "Redeem the same gift code a second time."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the gift code redemption is successful again, confirming multiple use."
+      },
+      {
+        "type": "action",
+        "description": "Simulate advancement of system date to past gift code expiry."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to redeem the gift code again."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify redemption is rejected due to expiry."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Payment Success Page Display and Control Switch",
+    "description": "Confirm that the payment success page is displayed or suppressed according to configured control switches after order payment.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure the payment success page display switch to ON."
+      },
+      {
+        "type": "action",
+        "description": "Carry out an order payment."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the payment success page is displayed after payment."
+      },
+      {
+        "type": "action",
+        "description": "Configure the payment success page display switch to OFF."
+      },
+      {
+        "type": "action",
+        "description": "Carry out another order payment."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the payment success page is not displayed after payment."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Supabase Environment Variable Validation and Secure API Calls",
+    "description": "Verify that the required environment variables for Supabase are properly configured and that the system securely interacts with Supabase APIs.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Check that environment variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify environment variables are non-empty and have valid format."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to initialize the Supabase client using the configured environment variables."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the Supabase client initializes successfully without error."
+      },
+      {
+        "type": "action",
+        "description": "Perform API calls requiring authentication (e.g., user login, data fetching)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify responses are returned securely and data integrity is maintained."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Frontend UI Responsiveness and Design Compliance",
+    "description": "Ensure that the frontend user interface is responsive, meets the design guidelines, and React Context properly manages authentication and user state.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access key user flows such as login, registration, evaluation pages, and admin pages on various screen sizes."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI components adapt correctly to different screen widths and resolutions preserving usability."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify styling follows Tailwind CSS and Radix UI design specifications."
+      },
+      {
+        "type": "action",
+        "description": "Perform login and logout operations."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify React Context updates and distributes authentication state correctly to all components."
+      },
+      {
+        "type": "action",
+        "description": "Check transition between routes using react-router-dom."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no errors or UI glitches occur during route changes."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Register Email Case Sensitivity and Clipboard Copy Edge Case",
+    "description": "Verify that emails are treated case-insensitively at registration and that clipboard copy of credentials handles edge cases such as clipboard permission issues.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to register with upper-case and mixed-case email versions."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify registration succeeds once per unique email ignoring case."
+      },
+      {
+        "type": "action",
+        "description": "Attempt registration when clipboard permissions are denied."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify system provides fallback messaging to user to manually copy credentials."
+      }
+    ]
+  }
+]

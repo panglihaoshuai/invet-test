@@ -109,7 +109,7 @@ $$;
 -- 5. Add comments
 COMMENT ON FUNCTION is_admin_by_email IS 'Check if email is admin, works with hardcoded admin email';
 COMMENT ON FUNCTION is_admin_by_id IS 'Check if user ID is admin, checks both users and profiles tables';
-COMMENT ON FUNCTION toggle_payment_system IS 'Toggle payment system, uses flexible admin check';
+COMMENT ON FUNCTION toggle_payment_system(boolean, uuid) IS 'Toggle payment system, uses flexible admin check';
 
 -- 6. Add index on users.email for performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

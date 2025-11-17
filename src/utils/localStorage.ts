@@ -1,13 +1,14 @@
 // 本地存储工具类
 // 所有测试结果和游戏历史记录都存储在本地浏览器中
 
-import type { TestResult, GameResult } from '@/types/types';
+import type { TestResult, GameResult, DeepSeekAnalysis } from '@/types/types';
 
 const STORAGE_KEYS = {
   TEST_RESULTS: 'investment_test_results',
   GAME_RESULTS: 'investment_game_results',
   CURRENT_TEST: 'investment_current_test',
-  USER_PREFERENCES: 'investment_user_preferences'
+  USER_PREFERENCES: 'investment_user_preferences',
+  DEEPSEEK_ANALYSES: 'investment_deepseek_analyses'
 };
 
 // 测试结果本地存储
@@ -186,9 +187,45 @@ export const storageUtils = {
     const allData = {
       testResults: testResultStorage.getAllTestResults(),
       gameResults: gameResultStorage.getAllGameResults(),
+      deepseekAnalyses: deepseekAnalysisStorage.getAllAnalyses(),
       preferences: userPreferencesStorage.getPreferences(),
       exportDate: new Date().toISOString()
     };
     return JSON.stringify(allData, null, 2);
+  }
+};
+
+// DeepSeek 分析本地存储
+export const deepseekAnalysisStorage = {
+  saveAnalysis(analysis: DeepSeekAnalysis): void {
+    const list = this.getAllAnalyses();
+    // 去重：按 test_result_id 覆盖
+    const filtered = list.filter(a => a.test_result_id !== analysis.test_result_id);
+    filtered.push(analysis);
+    localStorage.setItem(STORAGE_KEYS.DEEPSEEK_ANALYSES, JSON.stringify(filtered));
+  },
+
+  getAllAnalyses(): DeepSeekAnalysis[] {
+    const data = localStorage.getItem(STORAGE_KEYS.DEEPSEEK_ANALYSES);
+    return data ? JSON.parse(data) : [];
+  },
+
+  getByTestResultId(testResultId: string): DeepSeekAnalysis | null {
+    const list = this.getAllAnalyses();
+    return list.find(a => a.test_result_id === testResultId) || null;
+  },
+
+  deleteByTestResultId(testResultId: string): void {
+    const list = this.getAllAnalyses().filter(a => a.test_result_id !== testResultId);
+    localStorage.setItem(STORAGE_KEYS.DEEPSEEK_ANALYSES, JSON.stringify(list));
+  },
+
+  exportOne(testResultId: string): string {
+    const a = this.getByTestResultId(testResultId);
+    return JSON.stringify(a ?? {}, null, 2);
+  },
+
+  exportAll(): string {
+    return JSON.stringify(this.getAllAnalyses(), null, 2);
   }
 };

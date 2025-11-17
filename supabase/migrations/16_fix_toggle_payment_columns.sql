@@ -47,4 +47,4 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION toggle_payment_system IS 'Toggle payment system, uses flexible admin check with correct column names';
+COMMENT ON FUNCTION toggle_payment_system(boolean, uuid) IS 'Toggle payment system, uses flexible admin check with correct column names';

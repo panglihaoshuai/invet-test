@@ -13,6 +13,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   sendVerificationCode: (email: string) => Promise<void>;
   verifyCodeAndLogin: (email: string, code: string) => Promise<void>;
+  registerPassword: (email: string, password: string) => Promise<void>;
+  loginPassword: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User | null) => void;
 }
@@ -98,8 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(data.error);
     }
 
-    // For development mode, show the verification code in console
-    if (data.devCode) {
+    // For development mode only
+    if (import.meta.env.VITE_DEMO_MODE === 'true' && data.devCode) {
       console.log('='.repeat(50));
       console.log('开发模式：验证码未通过邮件发送');
       console.log(`邮箱：${email}`);
@@ -145,6 +147,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const registerPassword = async (email: string, password: string) => {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/register-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Register failed' }));
+      throw new Error(errorData.error || 'Register failed');
+    }
+  };
+
+  const loginPassword = async (email: string, password: string) => {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/login-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Login failed' }));
+      throw new Error(errorData.error || 'Login failed');
+    }
+    const data = await response.json();
+    if (data.success && data.token && data.user) {
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
+      setUser(data.user);
+    } else {
+      throw new Error('Invalid login response format');
+    }
+  };
+
   // Logout
   const logout = () => {
     localStorage.removeItem('auth_token');
@@ -162,6 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         sendVerificationCode,
         verifyCodeAndLogin,
+        registerPassword,
+        loginPassword,
         logout,
         setUser,
       }}

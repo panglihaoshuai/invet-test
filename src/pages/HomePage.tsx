@@ -24,7 +24,7 @@ const HomePage: React.FC = () => {
       console.log('🎭 角色原始值:', user.role);
       
       // 特殊处理：管理员邮箱强制显示管理员按钮
-      const isAdminEmail = user.email === '1062250152@qq.com';
+      const isAdminEmail = user.email?.toLowerCase() === '1062250152@qq.com';
       const hasAdminRole = user.role === 'admin';
       const adminStatus = isAdminEmail || hasAdminRole;
       
@@ -74,7 +74,7 @@ const HomePage: React.FC = () => {
               人格特质投资策略评估系统
             </h1>
             <p className="text-muted-foreground">
-              基于科学的人格测评和金融知识评估，为您推荐最适合的投资策略
+              使用账号密码登录，完成科学的人格与金融评估，为您匹配最适合的投资策略
             </p>
           </div>
           {isAuthenticated && (
@@ -103,6 +103,7 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* Test Mode Alert */}
+        {import.meta.env.VITE_DEMO_MODE === 'true' && (
         <Alert className="border-primary/50 bg-primary/5">
           <Info className="h-4 w-4" />
           <AlertTitle className="flex items-center justify-between">
@@ -121,6 +122,7 @@ const HomePage: React.FC = () => {
             点击右侧按钮查看完整的系统测试指南。
           </AlertDescription>
         </Alert>
+        )}
 
         {/* Local Storage Notice */}
         <LocalStorageNotice variant="compact" />

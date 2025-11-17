@@ -13,9 +13,10 @@ import type { OrderItem } from '@/types/types';
 interface PurchaseAnalysisCardProps {
   testResultId: string;
   onPurchaseComplete?: () => void;
+  paymentEnabled?: boolean;
 }
 
-const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete }: PurchaseAnalysisCardProps) => {
+const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled = true }: PurchaseAnalysisCardProps) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [price, setPrice] = useState(3.99);
@@ -134,6 +135,14 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete }: PurchaseAnal
   };
 
   const handlePurchase = async () => {
+    if (!paymentEnabled) {
+      toast({
+        title: '支付已关闭',
+        description: '当前支付接口处于关闭状态，请使用礼品码或稍后再试',
+        variant: 'destructive'
+      });
+      return;
+    }
     setIsProcessing(true);
 
     try {
@@ -322,7 +331,7 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete }: PurchaseAnal
           )}
 
           {/* 付费购买选项 */}
-          {freeAnalyses === 0 && (
+          {freeAnalyses === 0 && paymentEnabled && (
             <>
               {loadingPrice ? (
                 <div className="flex items-center justify-center py-4">
@@ -393,6 +402,19 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete }: PurchaseAnal
                 支持 Visa、Mastercard、支付宝等多种支付方式
               </p>
             </>
+          )}
+
+          {/* 支付关闭提示 */}
+          {freeAnalyses === 0 && !paymentEnabled && (
+            <div className="rounded-lg p-4 border bg-muted/50">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium">支付功能已关闭</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                管理员已关闭支付接口。您可以使用礼品码兑换免费分析，或稍后再试。
+              </p>
+            </div>
           )}
         </div>
 

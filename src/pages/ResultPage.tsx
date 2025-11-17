@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTest } from '@/contexts/TestContext';
-import { testResultApi, reportApi, paymentApi, deepseekApi } from '@/db/api';
+import { paymentApi, deepseekApi } from '@/db/api';
 import { adminApi } from '@/db/adminApi';
 import {
   matchInvestmentStyleV2,
@@ -18,6 +18,7 @@ import {
 import type { ReportData, DeepSeekAnalysis } from '@/types/types';
 import type { MatchingResult } from '@/utils/weightedMatching';
 import { Download, Home, Printer, TrendingUp, Brain, Calculator, Shield } from 'lucide-react';
+import { testResultStorage } from '@/utils/localStorage';
 import PurchaseAnalysisCard from '@/components/analysis/PurchaseAnalysisCard';
 import DeepSeekAnalysisCard from '@/components/analysis/DeepSeekAnalysisCard';
 
@@ -33,6 +34,8 @@ const ResultPage: React.FC = () => {
   const [isCheckingPurchase, setIsCheckingPurchase] = useState(true);
   const [deepseekEnabled, setDeepseekEnabled] = useState(false);
   const [matchingResults, setMatchingResults] = useState<MatchingResult[]>([]);
+  const [paymentEnabled, setPaymentEnabled] = useState(true);
+  const [isCheckingPaymentEnabled, setIsCheckingPaymentEnabled] = useState(true);
 
   useEffect(() => {
     if (!testId || !personalityScores || !tradingCharacteristics || !mathFinanceScores || !riskPreferenceScores) {
@@ -47,6 +50,7 @@ const ResultPage: React.FC = () => {
 
     generateReport();
     checkDeepSeekStatus();
+    checkPaymentEnabled();
     checkPurchaseStatus();
   }, []);
 
@@ -57,6 +61,18 @@ const ResultPage: React.FC = () => {
     } catch (error) {
       console.error('Error checking DeepSeek status:', error);
       setDeepseekEnabled(false);
+    }
+  };
+
+  const checkPaymentEnabled = async () => {
+    try {
+      const enabled = await adminApi.getPaymentSystemStatus();
+      setPaymentEnabled(enabled);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      setPaymentEnabled(true);
+    } finally {
+      setIsCheckingPaymentEnabled(false);
     }
   };
 
@@ -130,15 +146,20 @@ const ResultPage: React.FC = () => {
 
       setReportData(reportData);
 
-      // 更新数据库
-      if (testId) {
-        await testResultApi.updateTestResult(testId, {
+      // 仅本地保存历史
+      try {
+        testResultStorage.saveTestResult({
+          id: testId || `${Date.now()}`,
+          user_id: user.id,
+          personality_scores: personalityScores,
+          math_finance_scores: { percentage: mathFinanceScores.percentage },
+          risk_preference_scores: riskPreferenceScores,
           investment_style: bestMatch.archetype.name,
-          euclidean_distance: bestMatch.final_score // 使用最终得分替代欧几里得距离
-        });
-
-        // 保存报告
-        await reportApi.createReport(user.id, testId, reportData);
+          euclidean_distance: bestMatch.final_score,
+          completed_at: new Date().toISOString()
+        } as any);
+      } catch (e) {
+        console.error('本地保存测试结果失败:', e);
       }
 
       toast({
@@ -559,7 +580,7 @@ const ResultPage: React.FC = () => {
           </Card>
 
           {/* DeepSeek AI Analysis Section */}
-          {deepseekEnabled && !isCheckingPurchase && (
+          {deepseekEnabled && !isCheckingPurchase && !isCheckingPaymentEnabled && (
             <div className="print:hidden">
               {deepseekAnalysis ? (
                 <DeepSeekAnalysisCard analysis={deepseekAnalysis} />
@@ -574,6 +595,7 @@ const ResultPage: React.FC = () => {
               ) : testId ? (
                 <PurchaseAnalysisCard 
                   testResultId={testId} 
+                  paymentEnabled={paymentEnabled}
                   onPurchaseComplete={checkPurchaseStatus}
                 />
               ) : null}

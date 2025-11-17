@@ -259,19 +259,23 @@ export const adminApi = {
   // 更新用户角色
   async updateUserRole(userId: string, role: 'user' | 'admin'): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role, updated_at: new Date().toISOString() })
-        .eq('id', userId);
+      const { data: { user } } = await getCurrentUser();
+      if (!user) return false;
+
+      const { data, error } = await supabase.rpc('set_user_role', {
+        p_target_id: userId,
+        p_role: role,
+        p_actor_id: user.id,
+      });
 
       if (error) {
-        console.error('Error updating user role:', error);
+        console.error('Error updating user role via RPC:', error);
         return false;
       }
 
       // 记录操作
       await this.logAction('update_user_role', 'profile', userId, { role });
-      return true;
+      return (data?.success === true);
     } catch (error) {
       console.error('Error updating user role:', error);
       return false;
@@ -330,25 +334,101 @@ export const adminApi = {
   // 更新系统配置中的管理员邮箱
   async updateAdminEmail(email: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('system_config')
-        .update({ 
-          config_value: email,
-          updated_at: new Date().toISOString()
-        })
-        .eq('config_key', 'admin_email');
-
+      const { data: { user } } = await getCurrentUser();
+      if (!user) return false;
+      const { data, error } = await supabase.rpc('add_admin_email', {
+        p_email: email,
+        p_actor_id: user.id,
+      });
       if (error) {
-        console.error('Error updating admin email:', error);
+        console.error('Error adding admin email:', error);
         return false;
       }
-
-      // 记录操作
-      await this.logAction('update_admin_email', 'system_config', undefined, { email });
-      return true;
+      await this.logAction('add_admin_email', 'admin_emails', undefined, { email });
+      return (data?.success === true);
     } catch (error) {
       console.error('Error updating admin email:', error);
       return false;
+    }
+  },
+
+  async removeAdminEmail(email: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await getCurrentUser();
+      if (!user) return false;
+      const { data, error } = await supabase.rpc('remove_admin_email', {
+        p_email: email,
+        p_actor_id: user.id,
+      });
+      if (error) {
+        console.error('Error removing admin email:', error);
+        return false;
+      }
+      await this.logAction('remove_admin_email', 'admin_emails', undefined, { email });
+      return (data?.success === true);
+    } catch (error) {
+      console.error('Error removing admin email:', error);
+      return false;
+    }
+  },
+
+  async addBlockedEmail(email: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await getCurrentUser();
+      if (!user) return false;
+      const { data, error } = await supabase.rpc('add_blocked_email', {
+        p_email: email,
+        p_actor_id: user.id,
+      });
+      if (error) {
+        console.error('Error adding blocked email:', error);
+        return false;
+      }
+      await this.logAction('add_blocked_email', 'blocked_emails', undefined, { email });
+      return (data?.success === true);
+    } catch (error) {
+      console.error('Error adding blocked email:', error);
+      return false;
+    }
+  },
+
+  async removeBlockedEmail(email: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await getCurrentUser();
+      if (!user) return false;
+      const { data, error } = await supabase.rpc('remove_blocked_email', {
+        p_email: email,
+        p_actor_id: user.id,
+      });
+      if (error) {
+        console.error('Error removing blocked email:', error);
+        return false;
+      }
+      await this.logAction('remove_blocked_email', 'blocked_emails', undefined, { email });
+      return (data?.success === true);
+    } catch (error) {
+      console.error('Error removing blocked email:', error);
+      return false;
+    }
+  },
+
+  async listAdminEmails(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase.rpc('list_admin_emails');
+      if (error) return [];
+      return (data || []) as string[];
+    } catch {
+      return [];
+    }
+  },
+
+  async listBlockedEmails(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase.rpc('list_blocked_emails');
+      if (error) return [];
+      return (data || []) as string[];
+    } catch {
+      return [];
     }
   },
 
