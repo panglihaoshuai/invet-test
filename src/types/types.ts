@@ -263,5 +263,7 @@ export interface RedeemGiftCodeResult {
   message: string;
   free_analyses?: number;
   remaining_analyses?: number;
+  errorCode?: string;
+  errorDetails?: string;
 }
 

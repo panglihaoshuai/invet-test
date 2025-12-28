@@ -412,7 +412,7 @@ export const paymentApi = {
 // DeepSeek分析相关API
 export const deepseekApi = {
   // 生成DeepSeek分析（testData从本地存储传入）
-  async generateAnalysis(testResultId: string, orderId: string, testData: any): Promise<DeepSeekAnalysis | null> {
+  async generateAnalysis(testResultId: string, orderId: string, testData: any, language: 'zh' | 'en' = 'zh'): Promise<DeepSeekAnalysis | null> {
     try {
       const { data: { session } } = await getCurrentSession();
       
@@ -425,7 +425,8 @@ export const deepseekApi = {
         body: {
           testResultId,
           orderId,
-          testData // 从本地存储传入的测试数据
+          testData,
+          language
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`
@@ -441,6 +442,196 @@ export const deepseekApi = {
     } catch (error) {
       console.error('Error generating analysis:', error);
       return null;
+    }
+  },
+
+  async generateAnalysisFree(testResultId: string, testData: any, language: 'zh' | 'en' = 'zh'): Promise<DeepSeekAnalysis | null> {
+    const errorCode = 'GENERATE_FREE_ANALYSIS_ERROR';
+    try {
+      console.log(`🎁 [${errorCode}] 开始生成免费分析:`, { testResultId, language });
+      
+      const { data: { session }, error: sessionError } = await getCurrentSession();
+      
+      if (sessionError) {
+        console.error(`❌ [${errorCode}_001] 获取session失败:`, sessionError);
+        throw new Error(`获取session失败: ${sessionError.message || '未知错误'}`);
+      }
+      
+      if (!session?.access_token) {
+        console.error(`❌ [${errorCode}_002] 用户未认证:`, { 
+          hasSession: !!session,
+          hasAccessToken: !!session?.access_token 
+        });
+        throw new Error('用户未认证，请先登录');
+      }
+
+      // 清理 testData，确保可以序列化（移除循环引用、函数、undefined 等）
+      let cleanTestData: any = {};
+      try {
+        // 使用 JSON.parse(JSON.stringify()) 来深度克隆并清理数据
+        cleanTestData = JSON.parse(JSON.stringify(testData || {}));
+        console.log(`🧹 [${errorCode}] testData 清理完成:`, {
+          originalKeys: testData ? Object.keys(testData).slice(0, 10) : [],
+          cleanedKeys: Object.keys(cleanTestData).slice(0, 10),
+          cleanedSize: JSON.stringify(cleanTestData).length
+        });
+      } catch (cleanError) {
+        console.error(`❌ [${errorCode}_CLEAN] testData 清理失败:`, cleanError);
+        // 如果清理失败，尝试使用原始数据
+        cleanTestData = testData || {};
+      }
+
+      // 构建请求体对象，确保所有字段都是可序列化的
+      const requestBody = {
+        testResultId: String(testResultId || ''),
+        testData: cleanTestData || {},
+        language: language || 'zh'
+      };
+
+      // 验证请求体可以正确序列化
+      let serializedBody: string;
+      try {
+        serializedBody = JSON.stringify(requestBody);
+        console.log(`✅ [${errorCode}] 请求体序列化验证成功:`, {
+          bodySize: serializedBody.length,
+          bodyPreview: serializedBody.substring(0, 200)
+        });
+      } catch (serializeError) {
+        console.error(`❌ [${errorCode}_SERIALIZE] 请求体序列化失败:`, serializeError);
+        throw new Error('请求体序列化失败，请检查 testData 格式');
+      }
+
+      // 获取 Supabase URL 和 anon key
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase 配置缺失');
+      }
+
+      const functionUrl = `${supabaseUrl}/functions/v1/generate_deepseek_analysis_free`;
+
+      console.log(`🔐 [${errorCode}] 调用 Edge Function...`, {
+        testResultId,
+        language,
+        hasAccessToken: !!session.access_token,
+        tokenLength: session.access_token?.length || 0,
+        tokenPrefix: session.access_token ? session.access_token.substring(0, 30) + '...' : 'N/A',
+        testDataKeys: Object.keys(cleanTestData).slice(0, 10),
+        requestBodySize: serializedBody.length,
+        functionUrl
+      });
+      
+      // 使用 fetch API 直接调用 Edge Function，确保请求体正确序列化
+      // 添加超时处理（60秒，因为生成分析可能需要较长时间）
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
+      
+      let response: Response;
+      try {
+        response = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey
+          },
+          body: serializedBody, // 使用已序列化的 JSON 字符串
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        // 如果是超时或连接关闭，尝试从数据库获取已生成的分析
+        if (fetchError instanceof Error && (
+          fetchError.name === 'AbortError' || 
+          fetchError.message.includes('ERR_CONNECTION_CLOSED') ||
+          fetchError.message.includes('network')
+        )) {
+          console.warn(`⚠️ [${errorCode}_TIMEOUT] 请求超时或连接关闭，尝试从数据库获取分析...`);
+          
+          // 等待几秒让 Edge Function 完成
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          // 尝试从数据库获取最新生成的分析
+          try {
+            // 使用 deepseekApi 对象的方法（因为这是在对象方法内部）
+            const { data: existingAnalysis, error: fetchError } = await supabase
+              .from('deepseek_analyses')
+              .select()
+              .eq('test_result_id', testResultId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (!fetchError && existingAnalysis) {
+              console.log(`✅ [${errorCode}_RECOVER] 从数据库恢复分析:`, existingAnalysis.id);
+              return existingAnalysis;
+            }
+          } catch (recoverError) {
+            console.error(`❌ [${errorCode}_RECOVER] 恢复失败:`, recoverError);
+          }
+          
+          throw new Error('请求超时：分析可能正在生成中，请稍后刷新页面查看结果');
+        }
+        
+        throw fetchError;
+      }
+
+      // 检查响应状态
+      if (!response.ok) {
+        let errorMessage = '生成分析失败';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        
+        console.error(`❌ [${errorCode}_003] Edge Function 调用失败:`, {
+          status: response.status,
+          statusText: response.statusText,
+          errorMessage,
+          hasAccessToken: !!session.access_token,
+          tokenLength: session.access_token?.length || 0
+        });
+        
+        // 根据错误类型提供更详细的错误信息
+        if (response.status === 401) {
+          throw new Error('认证失败：Token无效或已过期，请重新登录后再试');
+        } else if (response.status === 400) {
+          throw new Error(errorMessage || '请求参数错误');
+        } else if (response.status === 500) {
+          throw new Error(errorMessage || '服务器错误，请稍后重试');
+        } else {
+          throw new Error(errorMessage || '生成分析失败');
+        }
+      }
+
+      // 解析响应数据
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error(`❌ [${errorCode}_004] 解析响应失败:`, parseError);
+        throw new Error('服务器响应格式错误');
+      }
+
+      if (!data || data.code !== 'SUCCESS' || !data.data || !data.data.analysis) {
+        console.error(`❌ [${errorCode}_004] 返回数据格式错误:`, data);
+        throw new Error(data?.message || '返回数据格式错误');
+      }
+
+      console.log(`✅ [${errorCode}] 免费分析生成成功:`, data.data.analysis.id);
+      return data.data.analysis;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ [${errorCode}_005] 生成免费分析异常:`, {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      throw error; // 重新抛出错误，让调用者处理
     }
   },
 
@@ -476,3 +667,4 @@ export const deepseekApi = {
     return Array.isArray(data) ? data : [];
   }
 };
+

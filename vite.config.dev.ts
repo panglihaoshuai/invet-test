@@ -1,17 +1,27 @@
+import { defineConfig } from "vite";
+import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
+import path from 'path';
 
-    import { defineConfig, loadConfigFromFile } from "vite";
-    import type { ConfigEnv } from "vite";
-    import path from "path";
-
-    const env: ConfigEnv = { command: "serve", mode: "development" };
-    const configFile = path.resolve(__dirname, "vite.config.ts");
-    const result = await loadConfigFromFile(env, configFile);
-    const userConfig = result?.config;
-
-    export default defineConfig({
-      ...userConfig,
-      plugins: [
-        ...(userConfig?.plugins || []),
-      ]
-    });
-    
+export default defineConfig({
+  plugins: [
+    react(),
+    svgr({
+      svgrOptions: {
+        icon: true,
+        exportType: 'named',
+        namedExport: 'ReactComponent',
+      },
+    }),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    port: 5173,
+    host: true,
+    open: true,
+  },
+});

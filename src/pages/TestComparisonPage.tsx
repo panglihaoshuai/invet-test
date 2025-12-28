@@ -7,7 +7,8 @@ import { testResultApi } from '@/db/api';
 import type { TestResult } from '@/types/types';
 import { ChevronLeft, TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { zhCN, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const TestComparisonPage = () => {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ const TestComparisonPage = () => {
   const [test1, setTest1] = useState<TestResult | null>(null);
   const [test2, setTest2] = useState<TestResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
+  const dateLocale = language === 'zh' ? zhCN : enUS;
+  const dateFormatLong = language === 'zh' ? 'yyyy年MM月dd日 HH:mm' : 'MMM dd, yyyy HH:mm';
 
   useEffect(() => {
     const ids = searchParams.get('ids');
@@ -153,7 +157,7 @@ const TestComparisonPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(test1.completed_at), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                  {format(new Date(test1.completed_at), dateFormatLong, { locale: dateLocale })}
                 </div>
                 {test1.investment_style && (
                   <div>
@@ -173,7 +177,7 @@ const TestComparisonPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(test2.completed_at), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                  {format(new Date(test2.completed_at), dateFormatLong, { locale: dateLocale })}
                 </div>
                 {test2.investment_style && (
                   <div>

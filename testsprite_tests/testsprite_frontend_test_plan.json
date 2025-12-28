@@ -1,417 +1,477 @@
 [
   {
     "id": "TC001",
-    "title": "User Registration with Email and Auto-Generated Password",
-    "description": "Verify that a user can register using their email, the system generates a one-time password, automatically copies the credentials to clipboard, and prompts the user to save them.",
+    "title": "Email Registration with One-Time Password",
+    "description": "Verify user can register using an email address and system sends a one-time password (OTP) for first-time login. Confirm that the OTP is copied to clipboard after successful registration.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the registration page."
+        "description": "Navigate to the registration page"
       },
       {
         "type": "action",
-        "description": "Enter a valid email address to register."
-      },
-      {
-        "type": "action",
-        "description": "Submit the registration form."
+        "description": "Input a valid email address and submit registration request"
       },
       {
         "type": "assertion",
-        "description": "System generates a one-time password."
+        "description": "Verify system generates and sends OTP to the provided email"
       },
       {
         "type": "assertion",
-        "description": "Verify the account email and generated password are automatically copied to clipboard."
+        "description": "Verify registration success message is displayed"
       },
       {
         "type": "assertion",
-        "description": "Verify user is prompted to save the copied credentials."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify a confirmation message indicating successful registration is displayed."
+        "description": "Verify OTP credentials are copied automatically to clipboard"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "User Login with Correct Email and Password",
-    "description": "Ensure users can log in successfully using a valid registered email and correct password.",
+    "title": "Login Using Email and Password",
+    "description": "Validate user can login using registered email and corresponding password, including password-less login and verification code login",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the login page."
+        "description": "Navigate to the login page"
       },
       {
         "type": "action",
-        "description": "Enter a registered email address and the correct password."
+        "description": "Select email and password login mode"
       },
       {
         "type": "action",
-        "description": "Click the login button."
+        "description": "Enter valid registered email and password"
+      },
+      {
+        "type": "action",
+        "description": "Click login button"
       },
       {
         "type": "assertion",
-        "description": "Verify that login is successful and user is redirected to the home page."
+        "description": "Verify user is logged in successfully and redirected to tests page"
+      },
+      {
+        "type": "action",
+        "description": "Logout and select verification code login mode"
+      },
+      {
+        "type": "action",
+        "description": "Input registered email and request verification code"
+      },
+      {
+        "type": "action",
+        "description": "Input received verification code"
+      },
+      {
+        "type": "action",
+        "description": "Click login button"
       },
       {
         "type": "assertion",
-        "description": "Verify access to the multi-dimensional investment-related psychological and ability evaluation pages."
+        "description": "Verify user is logged in successfully without entering password"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Login Failure with Incorrect Password",
-    "description": "Validate that login attempts with a valid email but incorrect password fail and proper error is shown.",
+    "title": "Login with Invalid Credentials",
+    "description": "Ensure login fails appropriately when user inputs invalid email, incorrect password, or expired/incorrect verification code",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the login page."
+        "description": "Navigate to the login page"
       },
       {
         "type": "action",
-        "description": "Enter a valid registered email and an incorrect password."
+        "description": "Enter invalid email format"
       },
       {
         "type": "action",
-        "description": "Click the login button."
+        "description": "Attempt login"
       },
       {
         "type": "assertion",
-        "description": "Verify login is denied."
+        "description": "Verify proper error message for invalid email format is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Enter registered email but incorrect password"
+      },
+      {
+        "type": "action",
+        "description": "Attempt login"
       },
       {
         "type": "assertion",
-        "description": "Check that an appropriate error message is displayed indicating invalid credentials."
+        "description": "Verify password incorrect error message is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Select verification code login and enter registered email"
+      },
+      {
+        "type": "action",
+        "description": "Input incorrect or expired verification code"
+      },
+      {
+        "type": "action",
+        "description": "Attempt login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify verification code invalid or expired error message is displayed"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Administrator Email Management - Add Admin Email",
-    "description": "Verify that an administrator can add another administrator email via the system settings page, and the email is stored in lowercase.",
+    "title": "Complete Multi-dimensional Tests and Generate Basic Report",
+    "description": "Verify logged-in user can complete personality traits, transaction traits, math & finance ability, and risk preference tests successfully and receive a personalized investment strategy report",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as an administrator."
+        "description": "Login successfully"
       },
       {
         "type": "action",
-        "description": "Navigate to the system settings admin page."
+        "description": "Navigate through all required test sections: Big Five personality, transaction traits, math & finance ability, risk preference"
       },
       {
         "type": "action",
-        "description": "Input a valid email address (mixed case) to be added as an administrator."
-      },
-      {
-        "type": "action",
-        "description": "Submit the new admin email."
+        "description": "Complete test inputs and submit"
       },
       {
         "type": "assertion",
-        "description": "Verify the new admin email is saved and displayed in lowercase."
+        "description": "Verify test data is saved and correctly associated with user account"
       },
       {
         "type": "assertion",
-        "description": "Verify the added email gains administrator privileges."
+        "description": "Verify system generates a personalized investment strategy based on Euclidean distance algorithm"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify basic investment strategy report is displayed to the user"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Administrator Email Management - Blacklist Email and Restrict Login",
-    "description": "Validate that blacklisted emails cannot log in to the system and are blocked upon login attempts.",
-    "category": "security",
+    "title": "Generate DeepSeek AI Analysis Report",
+    "description": "Validate user with paid access can generate deep AI-based investment psychological analysis report in either Chinese or English and view the result correctly",
+    "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as an administrator."
+        "description": "Login as user with paid access"
       },
       {
         "type": "action",
-        "description": "Navigate to the admin system settings page."
+        "description": "Complete and submit required tests"
       },
       {
         "type": "action",
-        "description": "Add an email address to the blacklist in mixed case."
+        "description": "Navigate to DeepSeek AI analysis feature"
+      },
+      {
+        "type": "action",
+        "description": "Trigger generation of AI-based psychological investment report"
       },
       {
         "type": "assertion",
-        "description": "Verify the blacklisted email is saved in lowercase."
+        "description": "Verify the report is generated without errors"
       },
       {
         "type": "action",
-        "description": "Log out from the administrator account."
-      },
-      {
-        "type": "action",
-        "description": "Attempt login with the blacklisted email and any password."
+        "description": "Switch language between Chinese and English"
       },
       {
         "type": "assertion",
-        "description": "Verify the login is denied with a clear access restriction message."
+        "description": "Verify report content updates accordingly while maintaining accuracy and completeness"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Multi-dimensional Investment Psychological and Ability Evaluation Completion and Result Generation",
-    "description": "Confirm that users can complete all available psychological and investment ability tests, and the system correctly records answers and produces accurate investment strategy matches.",
+    "title": "Stripe Payment and Order Processing",
+    "description": "Test payment flow via Stripe is handled correctly including checkout creation, payment verification, order record creation, and linkage to user test results",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a regular user."
+        "description": "Login as user requiring payment"
       },
       {
         "type": "action",
-        "description": "Navigate to the Big Five personality test page."
+        "description": "Navigate to payment page and select Stripe payment option"
       },
       {
         "type": "action",
-        "description": "Complete all questions in the Big Five personality test."
-      },
-      {
-        "type": "action",
-        "description": "Navigate to risk preference, trading characteristics, and mathematical finance ability tests."
-      },
-      {
-        "type": "action",
-        "description": "Answer all questions in each test."
-      },
-      {
-        "type": "action",
-        "description": "Submit all test results."
+        "description": "Complete payment process with valid card and submit"
       },
       {
         "type": "assertion",
-        "description": "Verify that all answers are accurately recorded."
+        "description": "Verify checkout session is created properly"
       },
       {
         "type": "assertion",
-        "description": "Verify the system generates personalized investment strategies based on Euclidean distance algorithm."
+        "description": "Verify Stripe confirms successful payment"
       },
       {
         "type": "assertion",
-        "description": "Verify that a basic investment advice report is generated and displayed."
+        "description": "Verify order status is updated to 'paid'"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify order is linked correctly to user's test records"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "DeepSeek AI Deep Psychological Analysis Access via Payment",
-    "description": "Test that users can purchase DeepSeek AI service through the payment system and that access is granted after successful payment.",
+    "title": "Gift Code Redemption with Usage and Activation Controls",
+    "description": "Verify that users can redeem gift codes with proper checks on usage limits, valid date ranges, and activation status affecting payment or feature unlock",
     "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a user."
+        "description": "Login as normal user"
       },
       {
         "type": "action",
-        "description": "Navigate to the AI deep psychological analysis purchase page."
+        "description": "Navigate to gift code redemption page"
       },
       {
         "type": "action",
-        "description": "Initiate a payment through the order system."
+        "description": "Enter a valid gift code with remaining usage and valid date"
       },
       {
         "type": "action",
-        "description": "Complete the payment process successfully."
+        "description": "Submit redemption"
       },
       {
         "type": "assertion",
-        "description": "Verify payment status is updated as successful."
+        "description": "Verify redemption is accepted and usage count decreased"
+      },
+      {
+        "type": "action",
+        "description": "Attempt redemption of gift code exceeding maximum usage"
       },
       {
         "type": "assertion",
-        "description": "Verify user access to AI deep psychological analysis is enabled."
+        "description": "Verify error message for code usage limit reached"
+      },
+      {
+        "type": "action",
+        "description": "Attempt redemption of expired gift code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error message for expired code"
+      },
+      {
+        "type": "action",
+        "description": "Attempt redemption of inactive gift code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error message for inactive code"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Gift Code System - Redeem Multiple Times and Expiry Enforcement",
-    "description": "Ensure the gift code system correctly supports multiple redemptions within validity period and prohibits use after expiry.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as a user."
-      },
-      {
-        "type": "action",
-        "description": "Obtain a valid gift code with multiple use permissions and a defined expiry date in the future."
-      },
-      {
-        "type": "action",
-        "description": "Redeem the gift code for the first time."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify gift code redemption is successful and relevant benefits are applied."
-      },
-      {
-        "type": "action",
-        "description": "Redeem the same gift code a second time."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the gift code redemption is successful again, confirming multiple use."
-      },
-      {
-        "type": "action",
-        "description": "Simulate advancement of system date to past gift code expiry."
-      },
-      {
-        "type": "action",
-        "description": "Attempt to redeem the gift code again."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify redemption is rejected due to expiry."
-      }
-    ]
-  },
-  {
-    "id": "TC009",
-    "title": "Payment Success Page Display and Control Switch",
-    "description": "Confirm that the payment success page is displayed or suppressed according to configured control switches after order payment.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Configure the payment success page display switch to ON."
-      },
-      {
-        "type": "action",
-        "description": "Carry out an order payment."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the payment success page is displayed after payment."
-      },
-      {
-        "type": "action",
-        "description": "Configure the payment success page display switch to OFF."
-      },
-      {
-        "type": "action",
-        "description": "Carry out another order payment."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the payment success page is not displayed after payment."
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Supabase Environment Variable Validation and Secure API Calls",
-    "description": "Verify that the required environment variables for Supabase are properly configured and that the system securely interacts with Supabase APIs.",
+    "title": "Administrator Role and Blacklist Management",
+    "description": "Validate that system administrators can add/remove admin users, manage blacklist emails, and block blacklisted users from logging in",
     "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Check that environment variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify environment variables are non-empty and have valid format."
+        "description": "Login as administrator"
       },
       {
         "type": "action",
-        "description": "Attempt to initialize the Supabase client using the configured environment variables."
+        "description": "Add a new administrator account"
       },
       {
         "type": "assertion",
-        "description": "Verify the Supabase client initializes successfully without error."
+        "description": "Verify new administrator can login and access admin features"
       },
       {
         "type": "action",
-        "description": "Perform API calls requiring authentication (e.g., user login, data fetching)."
+        "description": "Add an email address to the blacklist"
       },
       {
         "type": "assertion",
-        "description": "Verify responses are returned securely and data integrity is maintained."
+        "description": "Verify blacklisted email is listed in blacklist management"
+      },
+      {
+        "type": "action",
+        "description": "Logout and attempt login with blacklisted email"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login is rejected and appropriate message displayed"
+      },
+      {
+        "type": "action",
+        "description": "Remove email from blacklist"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user with that email can login successfully again"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "System Internationalization and Date Localization",
+    "description": "Ensure the system supports English and Chinese languages globally, including switching and that date formats localize correctly per language and region",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as user"
+      },
+      {
+        "type": "action",
+        "description": "Change interface language to English"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all UI text updates to English"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify date formats shown throughout UI correspond to English locale"
+      },
+      {
+        "type": "action",
+        "description": "Change interface language to Chinese"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all UI text updates to Chinese"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify date formats shown throughout UI correspond to Chinese locale"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Test Data Storage and Retrieval Consistency",
+    "description": "Verify that test results, payment information, gift code usage, and AI analysis data are consistently stored in local storage and backend, and retrieved correctly",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and complete tests"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify test data is saved correctly in backend and local storage"
+      },
+      {
+        "type": "action",
+        "description": "Perform Stripe payment and verify order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify payment and order data saved properly"
+      },
+      {
+        "type": "action",
+        "description": "Redeem a valid gift code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify gift code usage state updated in storage and database"
+      },
+      {
+        "type": "action",
+        "description": "Generate DeepSeek AI analysis report"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify AI analysis result cached in local storage and matches backend data"
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "Frontend UI Responsiveness and Design Compliance",
-    "description": "Ensure that the frontend user interface is responsive, meets the design guidelines, and React Context properly manages authentication and user state.",
-    "category": "ui",
+    "title": "Navigation and Routing Correctness",
+    "description": "Check that page navigation between login, test, results, history, comparison, and payment success pages works correctly and state is preserved",
+    "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Access key user flows such as login, registration, evaluation pages, and admin pages on various screen sizes."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify UI components adapt correctly to different screen widths and resolutions preserving usability."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify styling follows Tailwind CSS and Radix UI design specifications."
+        "description": "Login user"
       },
       {
         "type": "action",
-        "description": "Perform login and logout operations."
+        "description": "Navigate sequentially through Test page, Result page, Test History page, Test Comparison page, and Payment Success page"
       },
       {
         "type": "assertion",
-        "description": "Verify React Context updates and distributes authentication state correctly to all components."
+        "description": "Verify pages load without error and maintain correct user data and UI state"
       },
       {
         "type": "action",
-        "description": "Check transition between routes using react-router-dom."
+        "description": "Test back and forward buttons of browser to verify routing"
       },
       {
         "type": "assertion",
-        "description": "Verify no errors or UI glitches occur during route changes."
+        "description": "Verify routing is correct and no data is lost or corrupted"
       }
     ]
   },
   {
     "id": "TC012",
-    "title": "Register Email Case Sensitivity and Clipboard Copy Edge Case",
-    "description": "Verify that emails are treated case-insensitively at registration and that clipboard copy of credentials handles edge cases such as clipboard permission issues.",
-    "category": "error handling",
-    "priority": "Medium",
+    "title": "System Stability and Security Compliance",
+    "description": "Perform stress tests and security checks ensuring stable system operation under load, secure transmission and storage of sensitive data (passwords, tokens), and compliance with security standards",
+    "category": "security",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Attempt to register with upper-case and mixed-case email versions."
+        "description": "Simulate multiple concurrent user registrations and logins"
       },
       {
         "type": "assertion",
-        "description": "Verify registration succeeds once per unique email ignoring case."
+        "description": "Verify system performance remains stable without crashes"
       },
       {
         "type": "action",
-        "description": "Attempt registration when clipboard permissions are denied."
+        "description": "Attempt SQL injection and cross-site scripting attacks through input fields"
       },
       {
         "type": "assertion",
-        "description": "Verify system provides fallback messaging to user to manually copy credentials."
+        "description": "Verify inputs are sanitized and attacks are prevented"
+      },
+      {
+        "type": "action",
+        "description": "Verify passwords are stored hashed and secure communication (HTTPS) is enforced"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no plaintext passwords or tokens are exposed"
       }
     ]
   }

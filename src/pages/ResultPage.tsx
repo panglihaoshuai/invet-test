@@ -595,8 +595,19 @@ const ResultPage: React.FC = () => {
               ) : testId ? (
                 <PurchaseAnalysisCard 
                   testResultId={testId} 
-                  paymentEnabled={paymentEnabled}
-                  onPurchaseComplete={checkPurchaseStatus}
+                  paymentEnabled={false}
+                  testData={{
+                    personality_scores: personalityScores,
+                    math_finance_scores: mathFinanceScores,
+                    risk_preference_scores: riskPreferenceScores,
+                    trading_characteristics: tradingCharacteristics,
+                    investment_style: matchingResults[0]?.archetype.name,
+                    euclidean_distance: matchingResults[0]?.final_score
+                  }}
+                  onPurchaseComplete={async () => {
+                    const a = await deepseekApi.getAnalysisByTestResult(testId)
+                    if (a) setDeepseekAnalysis(a)
+                  }}
                 />
               ) : null}
             </div>

@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase } from '@/db/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -11,186 +13,186 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  sendVerificationCode: (email: string) => Promise<void>;
-  verifyCodeAndLogin: (email: string, code: string) => Promise<void>;
-  registerPassword: (email: string, password: string) => Promise<void>;
-  loginPassword: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signUpWithPassword: (email: string, password: string) => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
+  logout: () => Promise<void>;
   setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// 确保 profile 存在（用于 OAuth 登录）
+const ensureProfileExists = async (supabaseUser: SupabaseUser): Promise<void> => {
+  try {
+    const userEmail = supabaseUser.email?.toLowerCase();
+    if (!userEmail) {
+      console.warn('⚠️ [ensureProfileExists] 用户邮箱为空，跳过 profile 创建');
+      return;
+    }
+
+    // 检查 profile 是否存在
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', supabaseUser.id)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      console.log('📝 [ensureProfileExists] 创建 profile:', {
+        id: supabaseUser.id,
+        email: userEmail
+      });
+
+      // 创建 profile（触发器会自动设置角色）
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: supabaseUser.id,
+          email: userEmail,
+          role: 'user', // 默认角色，触发器会覆盖如果是管理员邮箱
+        }, {
+          onConflict: 'id'
+        });
+
+      if (profileError) {
+        console.error('❌ [ensureProfileExists] 创建 profile 失败:', profileError);
+      } else {
+        console.log('✅ [ensureProfileExists] Profile 创建成功');
+      }
+    } else {
+      console.log('✅ [ensureProfileExists] Profile 已存在');
+    }
+  } catch (error) {
+    console.error('❌ [ensureProfileExists] 异常:', error);
+  }
+};
+
+// Helper function to convert Supabase user to our User type
+const convertSupabaseUser = async (supabaseUser: SupabaseUser | null): Promise<User | null> => {
+  if (!supabaseUser) return null;
+
+  // Get user profile to check role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', supabaseUser.id)
+    .maybeSingle();
+
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    role: profile?.role || 'user',
+    created_at: supabaseUser.created_at || new Date().toISOString(),
+  };
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Verify token and get user info
-  const verifyToken = async (token: string) => {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'apikey': SUPABASE_ANON_KEY,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Token verification failed');
-      }
-
-      const data = await response.json();
-
-      if (data.valid && data.user) {
-        setUser(data.user);
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      return false;
-    }
-  };
-
   // Initialize auth on mount
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('auth_token');
-      
-      if (token) {
-        const isValid = await verifyToken(token);
-        if (!isValid) {
-          localStorage.removeItem('auth_token');
-          setUser(null);
-        }
+    // Get initial session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        // 确保 profile 存在
+        await ensureProfileExists(session.user);
+        const convertedUser = await convertSupabaseUser(session.user);
+        setUser(convertedUser);
       }
-      
       setLoading(false);
-    };
+    });
 
-    initAuth();
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        // 确保 profile 存在（OAuth 登录可能没有自动创建）
+        await ensureProfileExists(session.user);
+        const convertedUser = await convertSupabaseUser(session.user);
+        setUser(convertedUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Send verification code
-  const sendVerificationCode = async (email: string) => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-verification-code`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ email }),
+  // Sign up with email and password
+  const signUpWithPassword = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: '发送验证码失败' }));
-      throw new Error(errorData.error || '发送验证码失败');
+    if (error) {
+      throw new Error(error.message);
     }
 
-    const data = await response.json();
-    
-    if (data.error) {
-      throw new Error(data.error);
-    }
+    if (data.user) {
+      // Create profile if it doesn't exist
+      // The database trigger will automatically set role to 'admin' if email is 1062250152@qq.com
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: data.user.id,
+          email: data.user.email?.toLowerCase(),
+          role: 'user', // Default role, trigger will override if admin email
+        }, {
+          onConflict: 'id'
+        });
 
-    // For development mode only
-    if (import.meta.env.VITE_DEMO_MODE === 'true' && data.devCode) {
-      console.log('='.repeat(50));
-      console.log('开发模式：验证码未通过邮件发送');
-      console.log(`邮箱：${email}`);
-      console.log(`验证码：${data.devCode}`);
-      console.log('='.repeat(50));
-      // Also show in alert for easier access
-      alert(`开发模式：验证码为 ${data.devCode}\n\n请在登录页面输入此验证码。\n\n注意：生产环境中验证码将通过邮件发送。`);
-    }
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+      }
 
-    return data;
-  };
-
-  // Verify code and login
-  const verifyCodeAndLogin = async (email: string, code: string) => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-code-and-login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ email, code }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Login failed' }));
-      throw new Error(errorData.error || 'Login failed');
-    }
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    if (data.success && data.token && data.user) {
-      // Save token and user to localStorage
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('auth_user', JSON.stringify(data.user));
-      setUser(data.user);
-    } else {
-      throw new Error('Invalid login response format');
+      const convertedUser = await convertSupabaseUser(data.user);
+      setUser(convertedUser);
     }
   };
 
-  const registerPassword = async (email: string, password: string) => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/register-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ email, password }),
+  // Sign in with email and password
+  const signInWithPassword = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Register failed' }));
-      throw new Error(errorData.error || 'Register failed');
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data.user) {
+      // 确保 profile 存在
+      await ensureProfileExists(data.user);
+      const convertedUser = await convertSupabaseUser(data.user);
+      setUser(convertedUser);
     }
   };
 
-  const loginPassword = async (email: string, password: string) => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/login-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
+  // Sign in with OAuth (Google or GitHub)
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/`,
       },
-      body: JSON.stringify({ email, password }),
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Login failed' }));
-      throw new Error(errorData.error || 'Login failed');
-    }
-    const data = await response.json();
-    if (data.success && data.token && data.user) {
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('auth_user', JSON.stringify(data.user));
-      setUser(data.user);
-    } else {
-      throw new Error('Invalid login response format');
+
+    if (error) {
+      throw new Error(error.message);
     }
   };
 
   // Logout
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
+  const logout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('user');
     localStorage.removeItem('currentTestId');
     setUser(null);
@@ -202,10 +204,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         isAuthenticated: !!user,
-        sendVerificationCode,
-        verifyCodeAndLogin,
-        registerPassword,
-        loginPassword,
+        signUpWithPassword,
+        signInWithPassword,
+        signInWithOAuth,
         logout,
         setUser,
       }}

@@ -177,7 +177,7 @@ const RiskPreferenceTestPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <RadioGroup
-                  value={answers[question.id]?.toString()}
+                  value={answers[question.id] !== undefined ? answers[question.id].toString() : ''}
                   onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
                 >
                   <div className="space-y-3">

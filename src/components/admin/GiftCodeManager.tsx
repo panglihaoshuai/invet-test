@@ -26,6 +26,7 @@ const GiftCodeManager: React.FC = () => {
   const [generating, setGenerating] = useState(false);
   const [maxRedemptions, setMaxRedemptions] = useState(1);
   const [expiresInDays, setExpiresInDays] = useState<number | undefined>(undefined);
+  const [freeAnalysesCount, setFreeAnalysesCount] = useState(15);
 
   useEffect(() => {
     loadGiftCodes();
@@ -51,7 +52,7 @@ const GiftCodeManager: React.FC = () => {
   const handleGenerateCode = async () => {
     setGenerating(true);
     try {
-      const newCode = await giftCodeApi.generateGiftCode(maxRedemptions, expiresInDays);
+      const newCode = await giftCodeApi.generateGiftCode(maxRedemptions, expiresInDays, freeAnalysesCount);
       
       if (newCode) {
         toast({
@@ -63,6 +64,7 @@ const GiftCodeManager: React.FC = () => {
         // 重置表单
         setMaxRedemptions(1);
         setExpiresInDays(undefined);
+        setFreeAnalysesCount(15);
       } else {
         throw new Error('生成失败');
       }
@@ -170,6 +172,19 @@ const GiftCodeManager: React.FC = () => {
               <p className="text-xs text-muted-foreground">
                 留空表示永久有效
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="freeAnalysesCount">每用户免费分析次数</Label>
+              <Input
+                id="freeAnalysesCount"
+                type="number"
+                min="1"
+                value={freeAnalysesCount}
+                onChange={(e) => setFreeAnalysesCount(parseInt(e.target.value) || 1)}
+                placeholder="15"
+              />
+              <p className="text-xs text-muted-foreground">每位兑换此码的用户可获得的免费次数</p>
             </div>
 
             <div className="flex items-end">

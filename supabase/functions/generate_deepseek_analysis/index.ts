@@ -35,7 +35,99 @@ function fail(msg: string, code = 400): Response {
   );
 }
 
-function buildDeepSeekPrompt(testData: any): string {
+function buildDeepSeekPrompt(testData: any, language: 'zh' | 'en' = 'zh'): string {
+  if (language === 'en') {
+    return `You are a seasoned investment psychologist and financial advisor, skilled at analyzing investment strategies based on Big Five personality traits, financial knowledge and risk preferences.
+
+Please provide a professional, in-depth investment psychology analysis and personalized recommendations based on the following assessment data.
+
+## Assessment Data
+
+### 1. Big Five Personality Scores
+${testData.personality_scores ? `
+- Openness: ${testData.personality_scores.openness}/100
+- Conscientiousness: ${testData.personality_scores.conscientiousness}/100
+- Extraversion: ${testData.personality_scores.extraversion}/100
+- Agreeableness: ${testData.personality_scores.agreeableness}/100
+- Neuroticism: ${testData.personality_scores.neuroticism}/100
+` : 'Personality test not completed'}
+
+### 2. Math & Finance Ability
+${testData.math_finance_scores ? `
+- Total Score: ${testData.math_finance_scores.total_score}
+- Accuracy: ${testData.math_finance_scores.percentage}%
+- Correct Answers: ${testData.math_finance_scores.correct_answers}/${testData.math_finance_scores.total_questions}
+` : 'Math & finance test not completed'}
+
+### 3. Risk Preference
+${testData.risk_preference_scores ? `
+- Risk Tolerance: ${testData.risk_preference_scores.risk_tolerance}/10
+- Investment Horizon: ${testData.risk_preference_scores.investment_horizon}
+- Loss Aversion: ${testData.risk_preference_scores.loss_aversion}/10
+` : 'Risk preference test not completed'}
+
+### 4. Trading Characteristics
+${testData.trading_characteristics ? `
+- Trading Frequency: ${testData.trading_characteristics.trading_frequency}
+- Preferred Instruments: ${testData.trading_characteristics.preferred_instruments}
+- Analysis Method: ${testData.trading_characteristics.analysis_method}
+- Technical Preference: ${testData.trading_characteristics.technical_preference}
+- Decision Basis: ${testData.trading_characteristics.decision_basis}
+- Investment Philosophy: ${testData.trading_characteristics.investment_philosophy}
+- Learning Style: ${testData.trading_characteristics.learning_style}
+- Portfolio Approach: ${testData.trading_characteristics.portfolio_approach}
+` : 'Trading characteristics test not completed'}
+
+### 5. System Recommended Investment Style
+- Investment Style: ${testData.investment_style || 'Not evaluated'}
+- Euclidean Distance: ${testData.euclidean_distance || 'N/A'}
+
+## Analysis Requirements
+
+Provide analysis in the following structure, with a total length of 1500-2500 words:
+
+### 1. Investment Personality Profile (300-400 words)
+- Analyze the user’s investment personality based on Big Five traits
+- Explain how each trait influences investment decisions and behavior
+- Highlight strengths and potential risk points
+
+### 2. Financial Knowledge & Ability (200-300 words)
+- Assess the user’s level of financial mathematics knowledge
+- Identify areas of strength and those needing improvement
+- Provide specific learning recommendations
+
+### 3. Risk Management Analysis (300-400 words)
+- Analyze the user’s risk tolerance and loss aversion
+- Explain the psychological roots of risk preference based on personality
+- Provide personalized risk management strategies
+
+### 4. Investment Strategy Recommendations (400-600 words)
+- Provide detailed investment strategy suggestions based on all assessment data
+- Include asset allocation, trading frequency, holding period, etc.
+- Provide 3-5 specific actionable suggestions
+- Explain why these strategies fit the user
+
+### 5. Behavioral Bias Warning (200-300 words)
+- Identify potential behavioral biases based on personality and risk traits
+- Provide specific prevention and correction methods
+- Help the user recognize and overcome these biases
+
+### 6. Long-term Development Path (200-300 words)
+- Provide a long-term plan for improving investment ability
+- Include knowledge learning, practical experience, mindset adjustment
+- Set phased goals and milestones
+
+## Notes
+
+1. Professional: Use professional financial and psychological terms, but keep it easy to understand
+2. Personalization: All analysis must closely fit the user’s specific data, avoiding generic content
+3. Practicality: Provide concrete, actionable advice, not empty theory
+4. Objectivity: Highlight strengths while honestly pointing out risks and weaknesses
+5. Positivity: Maintain a positive, encouraging tone to boost confidence
+6. Structured: Use clear headings and sections for readability
+
+Begin your professional analysis now:`
+  }
   return `你是一位资深的投资心理学家和金融顾问，擅长基于Big Five人格模型、金融知识水平和风险偏好进行投资策略分析。
 
 请基于以下测评数据，为用户提供专业、深入的投资心理分析和个性化建议。
@@ -128,7 +220,7 @@ ${testData.trading_characteristics ? `
 请现在开始你的专业分析：`;
 }
 
-async function callDeepSeekAPI(prompt: string): Promise<string> {
+async function callDeepSeekAPI(prompt: string, language: 'zh' | 'en' = 'zh'): Promise<string> {
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) {
     throw new Error("DEEPSEEK_API_KEY未配置");
@@ -145,7 +237,9 @@ async function callDeepSeekAPI(prompt: string): Promise<string> {
       messages: [
         {
           role: "system",
-          content: "你是一位资深的投资心理学家和金融顾问，擅长基于人格特质、金融知识和风险偏好进行投资策略分析。"
+          content: language === 'zh'
+            ? "你是一位资深的投资心理学家和金融顾问，擅长基于人格特质、金融知识和风险偏好进行投资策略分析。"
+            : "You are a seasoned investment psychologist and financial advisor, skilled at analyzing investment strategies based on personality traits, financial knowledge and risk preferences."
         },
         {
           role: "user",
@@ -172,7 +266,7 @@ Deno.serve(async (req) => {
       return new Response(null, { headers: corsHeaders });
     }
 
-    const { testResultId, orderId, testData } = await req.json();
+    const { testResultId, orderId, testData, language } = await req.json();
     if (!testResultId || !orderId || !testData) {
       throw new Error("缺少必要参数");
     }
@@ -213,8 +307,8 @@ Deno.serve(async (req) => {
     }
 
     // 构建提示词并调用DeepSeek API
-    const prompt = buildDeepSeekPrompt(testData);
-    const analysisContent = await callDeepSeekAPI(prompt);
+    const prompt = buildDeepSeekPrompt(testData, language ?? 'zh');
+    const analysisContent = await callDeepSeekAPI(prompt, language ?? 'zh');
 
     // 保存分析结果
     const testDataSummary = {

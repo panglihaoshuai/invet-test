@@ -7,7 +7,8 @@ import { testResultApi } from '@/db/api';
 import type { TestResult } from '@/types/types';
 import { ChevronLeft, Download, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { zhCN, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 import PersonalityChart from '@/components/PersonalityChart';
 import InvestmentRecommendation from '@/components/InvestmentRecommendation';
 
@@ -17,6 +18,9 @@ const HistoricalResultPage = () => {
   const { toast } = useToast();
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
+  const dateLocale = language === 'zh' ? zhCN : enUS;
+  const dateFormatLong = language === 'zh' ? 'yyyy年MM月dd日 HH:mm' : 'MMM dd, yyyy HH:mm';
 
   useEffect(() => {
     if (!testId) {
@@ -85,7 +89,7 @@ const HistoricalResultPage = () => {
               <h1 className="text-3xl font-bold gradient-text mb-2">测试结果详情</h1>
               <p className="text-muted-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(testResult.completed_at), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                {format(new Date(testResult.completed_at), dateFormatLong, { locale: dateLocale })}
               </p>
             </div>
             <Button variant="outline">

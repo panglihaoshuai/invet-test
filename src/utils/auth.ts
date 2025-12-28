@@ -1,7 +1,10 @@
 /**
- * 自定义认证辅助函数
- * 用于替代 Supabase Auth 的 getUser() 和 getSession()
+ * Supabase Auth 辅助函数
+ * 使用 Supabase Auth 的 getUser() 和 getSession()
  */
+
+import { supabase } from '@/db/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -15,103 +18,72 @@ interface Session {
   user: User;
 }
 
+// Helper function to convert Supabase user to our User type
+const convertSupabaseUser = async (supabaseUser: SupabaseUser | null): Promise<User | null> => {
+  if (!supabaseUser) return null;
+
+  // Get user profile to check role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', supabaseUser.id)
+    .maybeSingle();
+
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    role: profile?.role || 'user',
+    created_at: supabaseUser.created_at || new Date().toISOString(),
+  };
+};
+
 /**
  * 获取当前用户信息
- * 替代 supabase.auth.getUser()
+ * 使用 supabase.auth.getUser()
  */
 export async function getCurrentUser(): Promise<{ data: { user: User | null }, error: Error | null }> {
   try {
-    const token = localStorage.getItem('auth_token');
+    const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
     
-    if (!token) {
-      return { data: { user: null }, error: null };
+    if (error) {
+      return { data: { user: null }, error };
     }
 
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-    });
-
-    if (!response.ok) {
-      // Token 验证失败，尝试从 localStorage 读取用户信息作为后备
-      console.log('Token 验证失败，使用 localStorage 中的用户信息');
-      const storedUser = localStorage.getItem('auth_user');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
+    const user = await convertSupabaseUser(supabaseUser);
           return { data: { user }, error: null };
-        } catch (e) {
-          console.error('解析存储的用户信息失败:', e);
-        }
-      }
-      
-      // 如果没有存储的用户信息，清除 token
-      localStorage.removeItem('auth_token');
-      return { data: { user: null }, error: new Error('Token 无效') };
-    }
-
-    const result = await response.json();
-
-    if (result.valid && result.user) {
-      // 更新 localStorage 中的用户信息
-      localStorage.setItem('auth_user', JSON.stringify(result.user));
-      return { data: { user: result.user }, error: null };
-    }
-
-    return { data: { user: null }, error: null };
   } catch (error) {
     console.error('获取用户信息失败:', error);
-    
-    // 发生异常时，尝试从 localStorage 读取用户信息
-    const storedUser = localStorage.getItem('auth_user');
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        console.log('使用 localStorage 中的用户信息作为后备');
-        return { data: { user }, error: null };
-      } catch (e) {
-        console.error('解析存储的用户信息失败:', e);
-      }
-    }
-    
     return { data: { user: null }, error: error as Error };
   }
 }
 
 /**
  * 获取当前会话信息
- * 替代 supabase.auth.getSession()
+ * 使用 supabase.auth.getSession()
  */
 export async function getCurrentSession(): Promise<{ data: { session: Session | null }, error: Error | null }> {
   try {
-    const token = localStorage.getItem('auth_token');
+    const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
+
+    if (error || !supabaseSession) {
+      return { data: { session: null }, error: error ? new Error(error.message) : null };
+    }
+
+    const user = await convertSupabaseUser(supabaseSession.user);
     
-    if (!token) {
+    if (!user) {
       return { data: { session: null }, error: null };
     }
 
-    const result = await getCurrentUser();
-    
-    if (result.data.user) {
       return {
         data: {
           session: {
-            access_token: token,
-            user: result.data.user,
+          access_token: supabaseSession.access_token,
+          user,
           },
         },
         error: null,
       };
-    }
-
-    return { data: { session: null }, error: null };
   } catch (error) {
     console.error('获取会话信息失败:', error);
     return { data: { session: null }, error: error as Error };

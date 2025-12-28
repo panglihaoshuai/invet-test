@@ -5,7 +5,7 @@ import type { GiftCode, GiftCodeStats, RedeemGiftCodeResult } from '@/types/type
 // 礼品码相关API
 export const giftCodeApi = {
   // 生成礼品码（管理员）
-  async generateGiftCode(maxRedemptions: number = 1, expiresInDays?: number): Promise<GiftCode | null> {
+  async generateGiftCode(maxRedemptions: number = 1, expiresInDays?: number, freeAnalysesCount: number = 15): Promise<GiftCode | null> {
     try {
       const { data: { user } } = await getCurrentUser();
       if (!user) {
@@ -70,7 +70,7 @@ export const giftCodeApi = {
       console.log('🎁 generateGiftCode: 插入数据库', {
         code,
         max_redemptions: maxRedemptions,
-        free_analyses_count: 15,
+        free_analyses_count: freeAnalysesCount,
         created_by: user.id,
         expires_at: expiresAt
       });
@@ -81,7 +81,7 @@ export const giftCodeApi = {
         .insert({
           code,
           max_redemptions: maxRedemptions,
-          free_analyses_count: 15,
+          free_analyses_count: freeAnalysesCount,
           created_by: user.id,
           expires_at: expiresAt
         })
@@ -168,14 +168,35 @@ export const giftCodeApi = {
 
   // 兑换礼品码（用户）
   async redeemGiftCode(code: string): Promise<RedeemGiftCodeResult> {
+    const errorCode = 'GIFT_CODE_REDEEM_ERROR';
     try {
-      const { data: { user } } = await getCurrentUser();
-      if (!user) {
+      console.log('🎁 [giftCodeApi.redeemGiftCode] 开始兑换礼品码:', { code: code.toUpperCase() });
+      
+      const { data: { user }, error: userError } = await getCurrentUser();
+      if (userError) {
+        console.error(`❌ [${errorCode}_001] 获取用户信息失败:`, userError);
         return {
           success: false,
-          message: '请先登录'
+          message: '请先登录',
+          errorCode: `${errorCode}_001`,
+          errorDetails: userError.message || 'Failed to get current user'
         };
       }
+      
+      if (!user) {
+        console.error(`❌ [${errorCode}_002] 用户未登录`);
+        return {
+          success: false,
+          message: '请先登录',
+          errorCode: `${errorCode}_002`,
+          errorDetails: 'User not authenticated'
+        };
+      }
+
+      console.log('🎁 [giftCodeApi.redeemGiftCode] 调用数据库函数:', { 
+        p_code: code.toUpperCase(), 
+        p_user_id: user.id 
+      });
 
       const { data, error } = await supabase.rpc('redeem_gift_code', {
         p_code: code.toUpperCase(),
@@ -183,19 +204,42 @@ export const giftCodeApi = {
       });
 
       if (error) {
-        console.error('Error redeeming gift code:', error);
+        console.error(`❌ [${errorCode}_003] 数据库函数调用失败:`, {
+          errorCode: error.code,
+          errorMessage: error.message,
+          errorDetails: error.details,
+          errorHint: error.hint,
+          code: code.toUpperCase(),
+          userId: user.id
+        });
         return {
           success: false,
-          message: '兑换失败，请稍后重试'
+          message: `兑换失败: ${error.message || '数据库错误'}`,
+          errorCode: `${errorCode}_003`,
+          errorDetails: JSON.stringify({
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          })
         };
       }
 
+      console.log('✅ [giftCodeApi.redeemGiftCode] 兑换成功:', data);
       return data as RedeemGiftCodeResult;
     } catch (error) {
-      console.error('Error redeeming gift code:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error(`❌ [${errorCode}_004] 兑换过程发生异常:`, {
+        error: errorMessage,
+        stack: errorStack,
+        code: code.toUpperCase()
+      });
       return {
         success: false,
-        message: '兑换失败，请稍后重试'
+        message: `兑换失败: ${errorMessage}`,
+        errorCode: `${errorCode}_004`,
+        errorDetails: errorStack || errorMessage
       };
     }
   },

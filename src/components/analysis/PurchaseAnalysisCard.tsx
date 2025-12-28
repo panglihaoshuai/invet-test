@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Sparkles, CheckCircle2, Loader2, CreditCard, TrendingDown, Gift, Ticket } from 'lucide-react';
-import { paymentApi } from '@/db/api';
+import { paymentApi, deepseekApi } from '@/db/api';
 import { adminApi } from '@/db/adminApi';
 import { giftCodeApi } from '@/db/giftCodeApi';
 import { useToast } from '@/hooks/use-toast';
@@ -14,9 +15,74 @@ interface PurchaseAnalysisCardProps {
   testResultId: string;
   onPurchaseComplete?: () => void;
   paymentEnabled?: boolean;
+  testData?: any;
 }
 
-const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled = true }: PurchaseAnalysisCardProps) => {
+// 微信赞赏码图片组件，防止闪烁
+const WeChatRewardImage = () => {
+  const [imgSrc, setImgSrc] = useState<string>('');
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      console.error('❌ [WeChatRewardImage] VITE_SUPABASE_URL 未配置');
+      setImgSrc('/wechat-reward.jpg');
+      setIsLoading(false);
+      return;
+    }
+
+    // 修复 URL：移除重复的 public
+    const storageUrl = `${supabaseUrl}/storage/v1/object/public/public/wechat-reward.jpg`;
+    console.log('🖼️ [WeChatRewardImage] 加载图片:', storageUrl);
+    setImgSrc(storageUrl);
+    setIsLoading(false);
+  }, []);
+
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    if (hasError) {
+      // 已经尝试过回退，避免循环
+      console.error('❌ [WeChatRewardImage] 图片加载失败，已尝试回退');
+      return;
+    }
+
+    const target = e.target as HTMLImageElement;
+    console.error('❌ [WeChatRewardImage] 图片加载失败:', {
+      currentSrc: target.currentSrc,
+      attemptedUrl: imgSrc
+    });
+
+    // 回退到本地图片
+    setHasError(true);
+    setImgSrc('/wechat-reward.jpg');
+  };
+
+  const handleLoad = () => {
+    console.log('✅ [WeChatRewardImage] 图片加载成功:', imgSrc);
+  };
+
+  if (!imgSrc) {
+    return (
+      <div className="w-48 h-48 flex items-center justify-center bg-muted rounded">
+        <p className="text-xs text-muted-foreground">加载中...</p>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={imgSrc}
+      alt="微信赞赏码" 
+      className="w-48 h-48 object-contain"
+      onError={handleError}
+      onLoad={handleLoad}
+      style={{ display: isLoading ? 'none' : 'block' }}
+    />
+  );
+};
+
+const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled = true, testData }: PurchaseAnalysisCardProps) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [price, setPrice] = useState(3.99);
@@ -26,6 +92,8 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
   const [showGiftCodeInput, setShowGiftCodeInput] = useState(false);
   const [giftCode, setGiftCode] = useState('');
   const [redeemingCode, setRedeemingCode] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStage, setGenerationStage] = useState<string>('');
 
   useEffect(() => {
     loadPricingInfo();
@@ -77,18 +145,32 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
         setShowGiftCodeInput(false);
         await loadFreeAnalyses();
       } else {
+        console.error('❌ [PurchaseAnalysisCard] 兑换失败:', {
+          result,
+          errorCode: result.errorCode,
+          errorDetails: result.errorDetails
+        });
+        
         toast({
           title: '兑换失败',
-          description: result.message,
-          variant: 'destructive'
+          description: result.errorCode 
+            ? `${result.message}\n错误码: ${result.errorCode}\n请查看浏览器控制台获取详细信息`
+            : result.message,
+          variant: 'destructive',
+          duration: 5000
         });
       }
     } catch (error) {
-      console.error('Error redeeming gift code:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ [PurchaseAnalysisCard] 兑换过程发生异常:', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       toast({
         title: '兑换失败',
-        description: '请稍后重试',
-        variant: 'destructive'
+        description: `异常错误: ${errorMessage}\n请查看浏览器控制台获取详细信息`,
+        variant: 'destructive',
+        duration: 5000
       });
     } finally {
       setRedeemingCode(false);
@@ -97,30 +179,89 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
 
   const handleUseFreeAnalysis = async () => {
     setIsProcessing(true);
-    try {
-      const success = await giftCodeApi.consumeFreeAnalysis();
-      
-      if (success) {
-        toast({
-          title: '使用成功',
-          description: '正在为您生成分析报告...'
-        });
-        
-        if (onPurchaseComplete) {
-          onPurchaseComplete();
-        }
-      } else {
-        throw new Error('使用免费次数失败');
-      }
-    } catch (error) {
-      console.error('Error using free analysis:', error);
-      toast({
-        title: '使用失败',
-        description: '无法使用免费次数，请稍后重试',
-        variant: 'destructive'
+    setGenerationProgress(0);
+    setGenerationStage('准备中...');
+    
+    // 进度模拟器 - 基于时间估算
+    const progressInterval = setInterval(() => {
+      setGenerationProgress((prev) => {
+        if (prev >= 90) return prev; // 在90%时停止，等待实际完成
+        return prev + Math.random() * 5; // 每次增加0-5%
       });
-    } finally {
-      setIsProcessing(false);
+    }, 500);
+    
+    // 阶段更新
+    const stageTimeout1 = setTimeout(() => setGenerationStage('验证用户权限...'), 500);
+    const stageTimeout2 = setTimeout(() => setGenerationStage('准备分析数据...'), 1500);
+    const stageTimeout3 = setTimeout(() => setGenerationStage('调用AI分析引擎...'), 3000);
+    const stageTimeout4 = setTimeout(() => setGenerationStage('生成个性化报告...'), 5000);
+    
+    try {
+      console.log('🎁 [PurchaseAnalysisCard] 开始使用免费分析:', { testResultId });
+      toast({ title: '使用成功', description: '正在为您生成分析报告...' });
+      const lang = (import.meta as any).env.VITE_DEFAULT_LANGUAGE === 'en' ? 'en' : 'zh'
+      
+      setGenerationStage('正在生成分析...');
+      setGenerationProgress(30);
+      
+      const analysis = await deepseekApi.generateAnalysisFree(testResultId, testData || {}, lang);
+      
+      clearInterval(progressInterval);
+      clearTimeout(stageTimeout1);
+      clearTimeout(stageTimeout2);
+      clearTimeout(stageTimeout3);
+      clearTimeout(stageTimeout4);
+      
+      setGenerationProgress(100);
+      setGenerationStage('分析生成完成！');
+      
+      if (!analysis) throw new Error('生成失败');
+      
+      // 短暂延迟以显示完成状态
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (onPurchaseComplete) onPurchaseComplete();
+      toast({ title: '分析生成成功', description: '您可以在测试结果页面查看详细分析' });
+      console.log('✅ [PurchaseAnalysisCard] 免费分析生成成功:', analysis.id);
+    } catch (error) {
+      clearInterval(progressInterval);
+      clearTimeout(stageTimeout1);
+      clearTimeout(stageTimeout2);
+      clearTimeout(stageTimeout3);
+      clearTimeout(stageTimeout4);
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ [PurchaseAnalysisCard] 生成免费分析失败:', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        testResultId
+      });
+      
+      setGenerationProgress(0);
+      setGenerationStage('');
+      
+      // 根据错误类型提供更详细的提示
+      let description = '请稍后重试';
+      if (errorMessage.includes('认证失败') || errorMessage.includes('Token无效') || errorMessage.includes('重新登录')) {
+        description = '认证失败，请刷新页面重新登录后再试';
+      } else if (errorMessage.includes('无可用免费次数')) {
+        description = '您的免费次数已用完，请兑换礼品码';
+      } else {
+        description = errorMessage || '请稍后重试';
+      }
+      
+      toast({ 
+        title: '分析生成失败', 
+        description,
+        variant: 'destructive',
+        duration: 5000
+      });
+    } finally { 
+      setTimeout(() => {
+        setIsProcessing(false);
+        setGenerationProgress(0);
+        setGenerationStage('');
+      }, 1000);
     }
   };
 
@@ -255,6 +396,17 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
                   剩余 {freeAnalyses} 次
                 </Badge>
               </div>
+              {/* 进度条显示 */}
+              {isProcessing && (
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{generationStage || '正在生成...'}</span>
+                    <span className="text-primary font-medium">{Math.round(generationProgress)}%</span>
+                  </div>
+                  <Progress value={generationProgress} className="h-2" />
+                </div>
+              )}
+              
               <Button
                 onClick={handleUseFreeAnalysis}
                 disabled={isProcessing}
@@ -264,7 +416,7 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
                 {isProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    处理中...
+                    {generationStage || '处理中...'}
                   </>
                 ) : (
                   <>
@@ -330,8 +482,8 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
             </div>
           )}
 
-          {/* 付费购买选项 */}
-          {freeAnalyses === 0 && paymentEnabled && (
+          {/* 付费购买选项（暂时关闭）*/}
+          {false && freeAnalyses === 0 && paymentEnabled && (
             <>
               {loadingPrice ? (
                 <div className="flex items-center justify-center py-4">
@@ -404,15 +556,22 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
             </>
           )}
 
+          {/* 赞赏码 */}
+          <div className="rounded-lg p-4 border bg-muted/50">
+            <p className="font-medium mb-2">如果喜欢，欢迎打赏支持</p>
+            <WeChatRewardImage />
+            <p className="text-xs text-muted-foreground mt-2">微信赞赏码</p>
+          </div>
+
           {/* 支付关闭提示 */}
-          {freeAnalyses === 0 && !paymentEnabled && (
+          {freeAnalyses === 0 && (
             <div className="rounded-lg p-4 border bg-muted/50">
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">支付功能已关闭</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                管理员已关闭支付接口。您可以使用礼品码兑换免费分析，或稍后再试。
+                当前只开放礼品码兑换 DeepSeek 测试功能，支付暂不开放。
               </p>
             </div>
           )}

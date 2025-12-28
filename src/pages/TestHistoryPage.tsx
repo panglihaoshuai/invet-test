@@ -20,7 +20,8 @@ import { testResultApi } from '@/db/api';
 import type { TestResult } from '@/types/types';
 import { ChevronLeft, Calendar, TrendingUp, Eye, BarChart3, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { zhCN, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const TestHistoryPage = () => {
   const navigate = useNavigate();
@@ -29,6 +30,10 @@ const TestHistoryPage = () => {
   const [testHistory, setTestHistory] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTests, setSelectedTests] = useState<string[]>([]);
+  const { language } = useLanguage();
+  const dateLocale = language === 'zh' ? zhCN : enUS;
+  const dateFormatShort = language === 'zh' ? 'yyyy年MM月dd日' : 'MMM dd, yyyy';
+  const dateFormatLong = language === 'zh' ? 'yyyy年MM月dd日 HH:mm' : 'MMM dd, yyyy HH:mm';
 
   useEffect(() => {
     if (!user) {
@@ -222,8 +227,8 @@ const TestHistoryPage = () => {
                   <p className="text-sm text-muted-foreground">最近测试</p>
                   <p className="text-lg font-medium">
                     {testHistory.length > 0
-                      ? format(new Date(testHistory[0].completed_at), 'yyyy年MM月dd日', { locale: zhCN })
-                      : '暂无记录'}
+                      ? format(new Date(testHistory[0].completed_at), dateFormatShort, { locale: dateLocale })
+                      : (language === 'zh' ? '暂无记录' : 'No records')}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-primary/10">
@@ -298,7 +303,7 @@ const TestHistoryPage = () => {
                       </div>
                       <CardDescription className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        {format(new Date(test.completed_at), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                        {format(new Date(test.completed_at), dateFormatLong, { locale: dateLocale })}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">

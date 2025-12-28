@@ -21,13 +21,11 @@ Miaoda Application Link URL
 
 ## 🚀 快速开始
 
-### 方式一：5分钟快速测试 ⭐ 推荐
+### 环境配置
 
-查看 **[快速开始.md](./快速开始.md)** - 最简单的测试流程
-
-### 方式二：完整部署指南
-
-查看 **[部署测试完整指南.md](./部署测试完整指南.md)** - 详细的部署和测试说明
+1. 确保 `.env` 文件已配置（包含 Supabase URL 和 API Keys）
+2. 安装依赖：`npm install`
+3. 启动开发服务器：`npm run dev`
 
 ### 方式三：查看系统流程
 
@@ -38,10 +36,9 @@ Miaoda Application Link URL
 ## 📚 文档导航
 
 ### 核心文档
-- **[快速开始.md](./快速开始.md)** - 5分钟快速测试指南 ⭐ 推荐新手
-- **[部署测试完整指南.md](./部署测试完整指南.md)** - 完整的部署和测试文档
-- **[系统流程图.md](./系统流程图.md)** - 系统架构和流程图
-- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - 详细的功能测试指南
+- **[docs/BUSINESS_FLOW.md](./docs/BUSINESS_FLOW.md)** - 业务流程和系统架构说明
+- **[docs/SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md)** - 系统架构概览
+- **[docs/TESTING_GUIDE.md](./docs/TESTING_GUIDE.md)** - 详细的功能测试指南
 - **[SECURITY_GUIDE.md](./SECURITY_GUIDE.md)** - 安全配置指南
 
 ### 管理员文档
@@ -165,7 +162,7 @@ VITE_API_ENV=production
 - **user_pricing_info** - 用户定价表
 - **system_config** - 系统配置表
 
-详细的表结构和关系请查看 [系统流程图.md](./系统流程图.md)
+详细的表结构和关系请查看 [docs/BUSINESS_FLOW.md](./docs/BUSINESS_FLOW.md)
 
 ---
 
@@ -186,7 +183,7 @@ UPDATE profiles SET role = 'admin'::user_role WHERE email = 'admin@test.com';
 ### 4. 测试付费（1分钟）
 - 创建订单 → 模拟支付 → 验证分析
 
-详细步骤请查看 [快速开始.md](./快速开始.md)
+详细步骤请查看 [docs/TESTING_GUIDE.md](./docs/TESTING_GUIDE.md)
 
 ---
 
@@ -211,7 +208,7 @@ UPDATE gift_codes SET is_active = true WHERE code = 'ABC12345';
 UPDATE orders SET status = 'completed', completed_at = now() WHERE id = '订单ID';
 ```
 
-更多问题请查看 [部署测试完整指南.md](./部署测试完整指南.md) 的"常见问题"部分
+更多问题请查看 [docs/TESTING_GUIDE.md](./docs/TESTING_GUIDE.md) 的"常见问题"部分
 
 ---
 
@@ -304,9 +301,9 @@ UPDATE orders SET status = 'completed', completed_at = now() WHERE id = '订单I
 - 执行查询和管理数据
 
 ### 文档资源
-- [快速开始](./快速开始.md)
-- [完整指南](./部署测试完整指南.md)
-- [系统流程](./系统流程图.md)
+- [业务流程](./docs/BUSINESS_FLOW.md)
+- [测试指南](./docs/TESTING_GUIDE.md)
+- [系统概览](./docs/SYSTEM_OVERVIEW.md)
 
 ---
 
@@ -314,13 +311,12 @@ UPDATE orders SET status = 'completed', completed_at = now() WHERE id = '订单I
 
 ```
 ├── README.md                          # 项目说明文档
-├── 快速开始.md                         # 5分钟快速测试指南
-├── 部署测试完整指南.md                  # 完整部署和测试文档
-├── 系统流程图.md                       # 系统架构和流程图
-├── TESTING_GUIDE.md                   # 详细功能测试指南
-├── docs/                              # 专项文档目录
-│   ├── ADMIN_SETUP.md                 # 管理员设置指南
-│   └── GIFT_CODE_PAYMENT_TESTING.md   # 礼品码和付费测试
+├── docs/                              # 文档目录
+│   ├── BUSINESS_FLOW.md              # 业务流程和架构说明
+│   ├── SYSTEM_OVERVIEW.md            # 系统架构概览
+│   ├── TESTING_GUIDE.md              # 功能测试指南
+│   ├── ADMIN_SETUP.md                # 管理员设置指南
+│   └── GIFT_CODE_PAYMENT_TESTING.md  # 礼品码和付费测试
 ├── supabase/                          # Supabase 配置
 │   └── migrations/                    # 数据库迁移文件
 ├── src/                               # 源代码目录
@@ -337,8 +333,8 @@ UPDATE orders SET status = 'completed', completed_at = now() WHERE id = '订单I
 
 ## 🎉 开始使用
 
-1. **新手用户**：查看 [快速开始.md](./快速开始.md)
-2. **详细了解**：查看 [部署测试完整指南.md](./部署测试完整指南.md)
-3. **系统架构**：查看 [系统流程图.md](./系统流程图.md)
+1. **了解系统**：查看 [docs/BUSINESS_FLOW.md](./docs/BUSINESS_FLOW.md)
+2. **测试功能**：查看 [docs/TESTING_GUIDE.md](./docs/TESTING_GUIDE.md)
+3. **系统架构**：查看 [docs/SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md)
 
 **祝您使用愉快！** 🚀

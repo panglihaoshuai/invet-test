@@ -55,10 +55,10 @@ const AdminDashboard: React.FC = () => {
       console.log('🎭 AdminDashboard: 用户角色:', user?.role);
       console.log('📧 AdminDashboard: 用户邮箱:', user?.email);
       
-      // 特殊处理：管理员邮箱强制允许访问
-      const isAdminEmail = user?.email === '1062250152@qq.com';
+      // 只允许特定管理员邮箱访问（数据库触发器会自动设置角色）
+      const isAdminEmail = user?.email?.toLowerCase() === '1062250152@qq.com';
       const hasAdminRole = user?.role === 'admin';
-      const adminStatus = isAdminEmail || hasAdminRole;
+      const adminStatus = isAdminEmail || hasAdminRole; // 检查邮箱或角色（数据库触发器会自动设置）
       
       console.log('📧 是否为管理员邮箱:', isAdminEmail);
       console.log('🎭 是否有管理员角色:', hasAdminRole);
