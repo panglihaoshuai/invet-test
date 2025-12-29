@@ -531,7 +531,7 @@ export const deepseekApi = {
       try {
         response = await fetch(functionUrl, {
           method: 'POST',
-          headers: {
+        headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`,
             'apikey': supabaseAnonKey
@@ -568,7 +568,7 @@ export const deepseekApi = {
             if (!fetchError && existingAnalysis) {
               console.log(`✅ [${errorCode}_RECOVER] 从数据库恢复分析:`, existingAnalysis.id);
               return existingAnalysis;
-            }
+        }
           } catch (recoverError) {
             console.error(`❌ [${errorCode}_RECOVER] 恢复失败:`, recoverError);
           }

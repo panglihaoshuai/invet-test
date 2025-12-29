@@ -3,14 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { testResultApi } from '@/db/api';
-import type { TestResult } from '@/types/types';
+import { testResultApi, deepseekApi } from '@/db/api';
+import type { TestResult, DeepSeekAnalysis } from '@/types/types';
 import { ChevronLeft, Download, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { useLanguage } from '@/contexts/LanguageContext';
 import PersonalityChart from '@/components/PersonalityChart';
 import InvestmentRecommendation from '@/components/InvestmentRecommendation';
+import DeepSeekAnalysisCard from '@/components/analysis/DeepSeekAnalysisCard';
 
 const HistoricalResultPage = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const HistoricalResultPage = () => {
   const { toast } = useToast();
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deepseekAnalysis, setDeepseekAnalysis] = useState<DeepSeekAnalysis | null>(null);
   const { language } = useLanguage();
   const dateLocale = language === 'zh' ? zhCN : enUS;
   const dateFormatLong = language === 'zh' ? 'yyyy年MM月dd日 HH:mm' : 'MMM dd, yyyy HH:mm';
@@ -47,6 +49,12 @@ const HistoricalResultPage = () => {
         return;
       }
       setTestResult(result);
+
+      // 加载 DeepSeek 分析报告
+      const analysis = await deepseekApi.getAnalysisByTestResult(testId);
+      if (analysis) {
+        setDeepseekAnalysis(analysis);
+      }
     } catch (error) {
       console.error('Load test result error:', error);
       toast({
@@ -58,6 +66,52 @@ const HistoricalResultPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadReport = () => {
+    if (!testResult) return;
+
+    const reportData = {
+      testResult,
+      deepseekAnalysis: deepseekAnalysis || null,
+      exportedAt: new Date().toISOString(),
+    };
+
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `test_report_${testId}_${format(new Date(testResult.completed_at), 'yyyyMMdd')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: '下载成功',
+      description: '测试报告已下载',
+    });
+  };
+
+  const handleDownloadAnalysis = () => {
+    if (!deepseekAnalysis) return;
+
+    const dataStr = JSON.stringify(deepseekAnalysis, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `deepseek_analysis_${testId}_${format(new Date(deepseekAnalysis.created_at), 'yyyyMMdd')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: '下载成功',
+      description: '分析报告已下载',
+    });
   };
 
   if (loading) {
@@ -92,10 +146,18 @@ const HistoricalResultPage = () => {
                 {format(new Date(testResult.completed_at), dateFormatLong, { locale: dateLocale })}
               </p>
             </div>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              下载报告
-            </Button>
+            <div className="flex gap-2">
+              {deepseekAnalysis && (
+                <Button variant="outline" onClick={handleDownloadAnalysis}>
+                  <Download className="mr-2 h-4 w-4" />
+                  下载分析报告
+                </Button>
+              )}
+              <Button variant="outline" onClick={handleDownloadReport}>
+                <Download className="mr-2 h-4 w-4" />
+                下载完整报告
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -251,6 +313,18 @@ const HistoricalResultPage = () => {
         {/* Investment Recommendation */}
         {testResult.investment_style && (
           <InvestmentRecommendation investmentStyle={testResult.investment_style} />
+        )}
+
+        {/* DeepSeek Analysis */}
+        {deepseekAnalysis && (
+          <Card>
+            <CardHeader>
+              <CardTitle>DeepSeek AI 深度分析报告</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DeepSeekAnalysisCard analysis={deepseekAnalysis} />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

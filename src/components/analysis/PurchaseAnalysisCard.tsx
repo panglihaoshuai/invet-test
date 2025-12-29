@@ -258,7 +258,7 @@ const PurchaseAnalysisCard = ({ testResultId, onPurchaseComplete, paymentEnabled
       });
     } finally { 
       setTimeout(() => {
-        setIsProcessing(false);
+      setIsProcessing(false); 
         setGenerationProgress(0);
         setGenerationStage('');
       }, 1000);

@@ -93,33 +93,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth on mount
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        // 确保 profile 存在
-        await ensureProfileExists(session.user);
-        const convertedUser = await convertSupabaseUser(session.user);
-        setUser(convertedUser);
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (!mounted) return;
+      
+      if (error) {
+        console.error('❌ [AuthContext] 获取 session 失败:', error);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      if (session?.user) {
+        try {
+          // 确保 profile 存在
+          await ensureProfileExists(session.user);
+          const convertedUser = await convertSupabaseUser(session.user);
+          if (mounted) {
+            setUser(convertedUser);
+          }
+        } catch (error) {
+          console.error('❌ [AuthContext] 初始化用户失败:', error);
+        }
+      }
+      
+      if (mounted) {
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      console.log('🔄 [AuthContext] Auth state changed:', event, session?.user?.email);
+      
       if (session?.user) {
-        // 确保 profile 存在（OAuth 登录可能没有自动创建）
-        await ensureProfileExists(session.user);
-        const convertedUser = await convertSupabaseUser(session.user);
-        setUser(convertedUser);
+        try {
+          // 确保 profile 存在（OAuth 登录可能没有自动创建）
+          await ensureProfileExists(session.user);
+          const convertedUser = await convertSupabaseUser(session.user);
+          if (mounted) {
+            setUser(convertedUser);
+          }
+        } catch (error) {
+          console.error('❌ [AuthContext] 更新用户状态失败:', error);
+        }
       } else {
-        setUser(null);
+        if (mounted) {
+          setUser(null);
+        }
       }
-      setLoading(false);
+      
+      if (mounted) {
+        setLoading(false);
+      }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);

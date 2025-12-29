@@ -41,14 +41,19 @@
 
 #### 3. 配置项目
 
-**如果项目在子目录 `app-7gjbw3zqrmdd`：**
-- **Root Directory**: 设置为 `app-7gjbw3zqrmdd`
-- **Framework Preset**: `Vite`（自动检测）
-- **Build Command**: `npm run build`（默认）
-- **Output Directory**: `dist`（默认）
+**重要：根据你的 GitHub 仓库结构，项目代码已经在根目录了！**
 
-**如果项目在根目录：**
-- 保持默认设置即可
+**配置步骤：**
+1. **Root Directory**: **留空或设置为 `.`**（不要设置为 `app-7gjbw3zqrmdd`）
+   - 因为你的 GitHub 仓库根目录直接就是项目代码
+   - 如果看到目录选择界面，直接选择 `invet-test`（根目录）即可
+2. **Framework Preset**: `Vite`（自动检测）
+3. **Build Command**: `npm run build`（默认）
+4. **Output Directory**: `dist`（默认）
+
+**如何确认：**
+- 在 Vercel 的目录选择界面，你应该看到：`docs`、`public`、`rules`、`src`、`supabase` 等目录
+- 这些就是项目的根目录，直接选择根目录（`invet-test`）即可
 
 #### 4. 添加环境变量
 
@@ -189,6 +194,6 @@ git push origin main
 
 ---
 
-**提示**：如果项目在子目录，记得在 Vercel 设置中配置 **Root Directory** 为 `app-7gjbw3zqrmdd`！
+**提示**：你的项目代码已经在 GitHub 仓库的根目录了，所以 **Root Directory 应该留空或设置为 `.`**（根目录），不需要设置为 `app-7gjbw3zqrmdd`！
 
 

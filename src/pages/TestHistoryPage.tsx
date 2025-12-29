@@ -16,9 +16,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { testResultApi } from '@/db/api';
-import type { TestResult } from '@/types/types';
-import { ChevronLeft, Calendar, TrendingUp, Eye, BarChart3, Trash2 } from 'lucide-react';
+import { testResultApi, deepseekApi } from '@/db/api';
+import type { TestResult, DeepSeekAnalysis } from '@/types/types';
+import { ChevronLeft, Calendar, TrendingUp, Eye, BarChart3, Trash2, FileText, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -30,6 +30,7 @@ const TestHistoryPage = () => {
   const [testHistory, setTestHistory] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTests, setSelectedTests] = useState<string[]>([]);
+  const [analysesMap, setAnalysesMap] = useState<Record<string, DeepSeekAnalysis>>({});
   const { language } = useLanguage();
   const dateLocale = language === 'zh' ? zhCN : enUS;
   const dateFormatShort = language === 'zh' ? 'yyyy年MM月dd日' : 'MMM dd, yyyy';
@@ -60,6 +61,14 @@ const TestHistoryPage = () => {
         new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
       );
       setTestHistory(sortedResults);
+
+      // 加载所有分析报告
+      const analyses = await deepseekApi.getUserAnalyses(user.id);
+      const analysesMap: Record<string, DeepSeekAnalysis> = {};
+      analyses.forEach(analysis => {
+        analysesMap[analysis.test_result_id] = analysis;
+      });
+      setAnalysesMap(analysesMap);
     } catch (error) {
       console.error('Load test history error:', error);
       toast({
@@ -70,6 +79,24 @@ const TestHistoryPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadAnalysis = (testId: string, analysis: DeepSeekAnalysis) => {
+    const dataStr = JSON.stringify(analysis, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `deepseek_analysis_${testId}_${format(new Date(analysis.created_at), 'yyyyMMdd')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: '下载成功',
+      description: '分析报告已下载',
+    });
   };
 
   const handleViewResult = (testId: string) => {
@@ -307,6 +334,16 @@ const TestHistoryPage = () => {
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
+                      {analysesMap[test.id] && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadAnalysis(test.id, analysesMap[test.id])}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          下载分析
+                        </Button>
+                      )}
                       <Button
                         variant={selectedTests.includes(test.id) ? 'default' : 'outline'}
                         size="sm"
@@ -326,46 +363,69 @@ const TestHistoryPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    {test.personality_scores && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">人格特质</p>
-                        <div className="space-y-1">
-                          <p>开放性: {test.personality_scores.openness.toFixed(1)}</p>
-                          <p>尽责性: {test.personality_scores.conscientiousness.toFixed(1)}</p>
+                  <div className="space-y-4">
+                    {analysesMap[test.id] && (
+                      <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">DeepSeek AI 分析报告</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {format(new Date(analysesMap[test.id].created_at), dateFormatShort, { locale: dateLocale })}
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadAnalysis(test.id, analysesMap[test.id])}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            下载
+                          </Button>
                         </div>
                       </div>
                     )}
-                    {test.math_finance_scores && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">金融能力</p>
-                        <p className="text-lg font-medium">
-                          {test.math_finance_scores.correct_answers}/{test.math_finance_scores.total_questions}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          正确率 {test.math_finance_scores.percentage.toFixed(0)}%
-                        </p>
-                      </div>
-                    )}
-                    {test.risk_preference_scores && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">风险偏好</p>
-                        <p className="text-lg font-medium">
-                          {test.risk_preference_scores.risk_tolerance <= 3 && '保守型'}
-                          {test.risk_preference_scores.risk_tolerance > 3 && test.risk_preference_scores.risk_tolerance <= 5 && '稳健型'}
-                          {test.risk_preference_scores.risk_tolerance > 5 && test.risk_preference_scores.risk_tolerance <= 7 && '平衡型'}
-                          {test.risk_preference_scores.risk_tolerance > 7 && '积极型'}
-                        </p>
-                      </div>
-                    )}
-                    {test.euclidean_distance !== null && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">匹配度</p>
-                        <p className="text-lg font-medium">
-                          {test.euclidean_distance.toFixed(0)}%
-                        </p>
-                      </div>
-                    )}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      {test.personality_scores && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">人格特质</p>
+                          <div className="space-y-1">
+                            <p>开放性: {test.personality_scores.openness.toFixed(1)}</p>
+                            <p>尽责性: {test.personality_scores.conscientiousness.toFixed(1)}</p>
+                          </div>
+                        </div>
+                      )}
+                      {test.math_finance_scores && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">金融能力</p>
+                          <p className="text-lg font-medium">
+                            {test.math_finance_scores.correct_answers}/{test.math_finance_scores.total_questions}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            正确率 {test.math_finance_scores.percentage.toFixed(0)}%
+                          </p>
+                        </div>
+                      )}
+                      {test.risk_preference_scores && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">风险偏好</p>
+                          <p className="text-lg font-medium">
+                            {test.risk_preference_scores.risk_tolerance <= 3 && '保守型'}
+                            {test.risk_preference_scores.risk_tolerance > 3 && test.risk_preference_scores.risk_tolerance <= 5 && '稳健型'}
+                            {test.risk_preference_scores.risk_tolerance > 5 && test.risk_preference_scores.risk_tolerance <= 7 && '平衡型'}
+                            {test.risk_preference_scores.risk_tolerance > 7 && '积极型'}
+                          </p>
+                        </div>
+                      )}
+                      {test.euclidean_distance !== null && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">匹配度</p>
+                          <p className="text-lg font-medium">
+                            {test.euclidean_distance.toFixed(0)}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
